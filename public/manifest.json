@@ -1,0 +1,17 @@
+{
+    "name": "Roster Manager",
+    "short_name": "Roster",
+    "description": "Store Roster Management Application",
+    "start_url": "/?pwa=true",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#0f172a",
+    "icons": [
+        {
+            "src": "images/logo_r.png",
+            "sizes": "192x192 512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

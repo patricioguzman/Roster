@@ -1,0 +1,12 @@
+open -u 'bypat.com.au_2pxecwmrk9o','epnH!?6K6bpoyL6v' ftp://178.32.171.58
+set ssl:verify-certificate no
+# Sincronizar la carpeta pública (en Plesk debes apuntar el Document Root a /public)
+mirror -R public/ public/
+# Sincronizar el backend
+mirror -R backend/ backend/
+# Subir archivos sueltos necesarios para Node.js (App.js incluido)
+put app.js
+put package.json
+put package-lock.json
+put .env.production -o .env
+quit

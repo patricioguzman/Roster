@@ -1,0 +1,115 @@
+{
+  "company": "Personal Details",
+  "staff": [
+    {
+      "firstName": "Elizabeth",
+      "lastName": "Escudero",
+      "fullName": "Elizabeth Escudero",
+      "dateOfBirth": "1971-05-01",
+      "phone": "0449970072",
+      "email": "Liz01red@gmail.com"
+    },
+    {
+      "firstName": "Tanisha",
+      "lastName": "Antaal",
+      "fullName": "Tanisha Antaal",
+      "dateOfBirth": "2001-07-12",
+      "phone": "0402705602",
+      "email": "Tanishaantaal220@gmail.com"
+    },
+    {
+      "firstName": "Harry",
+      "lastName": "Grant",
+      "fullName": "Harry Grant",
+      "dateOfBirth": "2008-09-22",
+      "phone": "0411261693",
+      "email": "harrygrantjnr@gmail.com"
+    },
+    {
+      "firstName": "Teresa",
+      "lastName": "Carman",
+      "fullName": "Teresa Carman",
+      "dateOfBirth": "1972-04-08",
+      "phone": "0421074714",
+      "email": "Teresacarman8@gmail.com"
+    },
+    {
+      "firstName": "Ashlyn",
+      "lastName": "Prakash",
+      "fullName": "Ashlyn Prakash",
+      "dateOfBirth": null,
+      "phone": "0451903033",
+      "email": "ashlynanisha@gmail.com",
+      "note": "Date entered as 34/03/1991 in source (invalid format)"
+    },
+    {
+      "firstName": "Mia",
+      "lastName": "Hadchiti",
+      "fullName": "Mia Chanel Hadchiti",
+      "dateOfBirth": "2010-04-13",
+      "phone": "0422081092",
+      "email": "mhadchiti67@gmail.com"
+    },
+    {
+      "firstName": "Stacey",
+      "lastName": "Mendoza",
+      "fullName": "Stacey Mendoza",
+      "dateOfBirth": "1989-07-10",
+      "phone": "0408133375",
+      "email": "smdenise_21@hotmail.com"
+    },
+    {
+      "firstName": "Aarav",
+      "lastName": "Jagasia",
+      "fullName": "Aarav Jagasia",
+      "dateOfBirth": "2007-01-24",
+      "phone": "0493795037",
+      "email": "aaravjagasia@gmail.com"
+    },
+    {
+      "firstName": "Ricardos",
+      "lastName": "Hanna",
+      "fullName": "Ricardos Hanna",
+      "dateOfBirth": "2009-05-13",
+      "phone": "0489036009",
+      "email": "Hannarico67@gmail.com"
+    },
+    {
+      "firstName": "Chloe",
+      "lastName": "Emmerton",
+      "fullName": "Chloe Ann Emmerton",
+      "dateOfBirth": "1995-08-22",
+      "phone": "0432559951",
+      "email": "chloesnowball@outlook.com"
+    },
+    {
+      "firstName": "Rehan",
+      "lastName": "Adeel",
+      "fullName": "Rehan Adeel",
+      "dateOfBirth": "2006-09-04",
+      "phone": "0451979053",
+      "email": "Rehan04227@gmail.com"
+    },
+    {
+      "firstName": "Syed",
+      "lastName": "Mohiuddin",
+      "fullName": "Syed Azeem Mohiuddin",
+      "dateOfBirth": "2002-09-05",
+      "phone": "0411618377",
+      "email": "Syedazeem6967@gmail.com"
+    },
+    {
+      "firstName": "Will",
+      "lastName": "Mallon",
+      "fullName": "Will Mallon",
+      "dateOfBirth": "2007-04-28",
+      "phone": "0413315489",
+      "email": "willmallon07@gmail.com"
+    }
+  ],
+  "meta": {
+    "exportedAt": "2026-02-25",
+    "format": "ISO-8601 date",
+    "country": "Australia"
+  }
+}
