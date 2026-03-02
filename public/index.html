@@ -80,8 +80,7 @@
             min-width: 130px;
         }
 
-        .view-btn.active,
-        .lang-btn.active {
+        .view-btn.active {
             background-color: #f97316;
             color: white;
         }
@@ -264,22 +263,23 @@
 
         <!-- Left Area (Brand) -->
         <div class="brand">
+            <button id="openSidebarBtn"
+                class="text-gray-400 hover:text-white transition p-1.5 rounded-md hover:bg-gray-800 -ml-2"><i
+                    data-lucide="menu" class="w-6 h-6"></i></button>
             <img class="brand-logo drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform"
                 src="images/logo_r.png" alt="Roster Manager" />
-            <div class="brand-text" data-translate="mainTitle">Roster Manager</div>
+            <div class="brand-text">Roster Manager</div>
         </div>
 
         <!-- Center Area (Store & Date) -->
         <div class="flex items-center justify-center gap-4 flex-1">
             <div class="flex items-center gap-2">
-                <label for="storeSelector" class="text-xs md:text-sm font-medium text-gray-400"
-                    data-translate="store">Store:</label>
+                <label for="storeSelector" class="text-xs md:text-sm font-medium text-gray-400">Store:</label>
                 <select id="storeSelector"
                     class="bg-gray-800 border border-gray-700 rounded-lg py-1.5 px-2 text-xs md:text-sm focus:ring-orange-500 focus:border-orange-500 transition text-white"></select>
             </div>
             <div class="flex items-center gap-2">
-                <label for="weekStartDate" class="text-xs md:text-sm font-medium text-gray-400"
-                    data-translate="startDate">Start Date:</label>
+                <label for="weekStartDate" class="text-xs md:text-sm font-medium text-gray-400">Start Date:</label>
                 <input type="date" id="weekStartDate"
                     class="bg-gray-800 border border-gray-700 rounded-lg py-1.5 px-2 text-xs md:text-sm focus:ring-orange-500 focus:border-orange-500 transition appearance-none text-white"
                     style="color-scheme: dark;">
@@ -291,19 +291,10 @@
 
         <!-- Right Area (Lang & Auth) -->
         <div class="flex items-center justify-end gap-3 md:gap-4 shrink-0">
-            <div class="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
-                <button id="lang-en"
-                    class="lang-btn text-xs py-1 px-2 rounded-md transition hover:bg-gray-700 flex items-center gap-1"><img
-                        src="https://flagcdn.com/w20/gb.png" class="w-4 h-3 opacity-80" alt="EN"> EN</button>
-                <button id="lang-es"
-                    class="lang-btn text-xs py-1 px-2 rounded-md transition hover:bg-gray-700 flex items-center gap-1"><img
-                        src="https://flagcdn.com/w20/es.png" class="w-4 h-3 opacity-80" alt="ES"> ES</button>
-            </div>
-
-            <button id="loginBtn" data-translate="login"
+            <button id="loginBtn"
                 class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-1.5 px-3 rounded-lg transition text-sm flex items-center gap-1"><i
                     data-lucide="log-in" class="w-4 h-4"></i> Login</button>
-            <button id="logoutBtn" data-translate="logout"
+            <button id="logoutBtn"
                 class="bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-3 rounded-lg transition text-sm hidden flex items-center gap-1"><i
                     data-lucide="log-out" class="w-4 h-4"></i> Logout</button>
         </div>
@@ -311,728 +302,798 @@
 
     <!-- Main Body Container -->
     <div class="max-w-[1600px] mx-auto px-4 md:px-8 pb-12 flex-1 flex flex-col w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 relative flex-1">
+        <div class="flex flex-col gap-6 w-full mb-6">
             <!-- LEFT COLUMN (Main Focus) -->
-            <div class="lg:col-span-3 flex flex-col gap-6 w-full">
-                <div id="shift-editor" class="bg-gray-900 p-4 md:p-6 rounded-2xl shadow-lg hidden admin-only">
-                    <h2 class="text-xl md:text-2xl font-semibold mb-4 border-b border-gray-800 pb-2 text-white"
-                        data-translate="weeklyShiftEditor">Shift Editor</h2>
-                    <div class="flex flex-col md:flex-row md:flex-wrap md:items-end justify-between gap-4 mb-4">
-                        <div class="flex flex-col sm:flex-row flex-wrap sm:items-center sm:gap-4 w-full md:w-auto">
+            <div id="shift-editor" class="bg-gray-900 p-4 md:p-6 rounded-2xl shadow-lg hidden admin-only">
+                <h2 class="text-xl md:text-2xl font-semibold mb-4 border-b border-gray-800 pb-2 text-white">Shift
+                    Editor</h2>
+                <div class="flex flex-col md:flex-row md:flex-wrap md:items-end justify-between gap-4 mb-4">
+                    <div class="flex flex-col sm:flex-row flex-wrap sm:items-center sm:gap-4 w-full md:w-auto">
 
-                            <div class="flex items-center gap-1 mb-2 sm:mb-0 shrink-0 relative">
-                                <label for="staffNameSelect" class="text-sm font-medium text-gray-300"
-                                    data-translate="employee">Employee:</label>
-                                <div class="tooltip">
-                                    <i data-lucide="help-circle" class="w-4 h-4 help-icon"></i>
-                                    <span class="tooltiptext">Select an employee here, OR click repeatedly on their
-                                        schedule
-                                        cells below to highlight days for editing.</span>
-                                </div>
+                        <div class="flex items-center gap-1 mb-2 sm:mb-0 shrink-0 relative">
+                            <label for="staffNameSelect" class="text-sm font-medium text-gray-300">Employee:</label>
+                            <div class="tooltip">
+                                <i data-lucide="help-circle" class="w-4 h-4 help-icon"></i>
+                                <span class="tooltiptext">Select an employee here, OR click repeatedly on their
+                                    schedule
+                                    cells below to highlight days for editing.</span>
                             </div>
-                            <select id="staffNameSelect"
-                                class="bg-gray-800 border border-gray-700 rounded-lg p-2.5 focus:ring-orange-500 focus:border-orange-500 transition w-full sm:w-64 text-white">
-                                <option value="" data-translate="selectEmployee">Select Employee</option>
-                            </select>
                         </div>
-
-                        <div id="bulk-apply-container"
-                            class="hidden bg-gray-800 p-3 rounded-lg flex flex-wrap items-end gap-3 border border-gray-700">
-                            <div>
-                                <div class="flex items-center gap-1 mb-1 relative">
-                                    <label class="block text-xs text-gray-400" data-translate="bulkApplyTime">Bulk Apply
-                                        Hours:</label>
-                                    <div class="tooltip">
-                                        <i data-lucide="help-circle" class="w-3 h-3 help-icon"></i>
-                                        <span class="tooltiptext">Click multiple days in the calendar below, set a time
-                                            range here, then apply it to all selected days instantly!</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input type="time" id="bulk-start-time" step="900"
-                                        class="bg-gray-700 border border-gray-600 rounded-lg p-2 focus:ring-orange-500 focus:border-orange-500 text-sm text-white"
-                                        style="color-scheme: dark;">
-                                    <span class="text-gray-400">-</span>
-                                    <input type="time" id="bulk-end-time" step="900"
-                                        class="bg-gray-700 border border-gray-600 rounded-lg p-2 focus:ring-orange-500 focus:border-orange-500 text-sm text-white"
-                                        style="color-scheme: dark;">
-                                </div>
-                            </div>
-                            <button id="applyBulkHoursBtn"
-                                class="bg-red-900 hover:bg-red-800 border border-red-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition"
-                                data-translate="applyToSelected">Apply to Selected</button>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end mb-2">
-                        <div class="view-controls flex gap-2 rounded-lg bg-gray-800 p-1 w-full max-w-[240px]">
-                            <button data-view="week"
-                                class="view-btn flex-1 text-sm py-1.5 px-3 rounded-md transition text-gray-300 hover:bg-gray-700"
-                                data-translate="weekView">Week</button>
-                            <button data-view="fortnight"
-                                class="view-btn flex-1 text-sm py-1.5 px-3 rounded-md transition active bg-orange-500 text-white font-bold"
-                                data-translate="fortnightView">14 Days</button>
-                        </div>
-                    </div>
-
-                    <div id="weekly-editor-container" class="space-y-2 max-h-[50vh] overflow-y-auto pr-2"></div>
-
-                    <div class="text-right font-bold text-lg mt-4 pr-2 text-orange-400">
-                        <p class="text-orange-500"><span id="total-hours-label" data-translate="totalHours">Total
-                                Hours</span>:
-                            <span id="weekly-total-hours" class="text-white">0.0</span> hrs
-                        </p>
-                    </div>
-
-                    <div class="mt-2 flex items-center justify-end pr-2 text-sm text-gray-300">
-                        <label for="repeatWeeksSelect" class="mr-2 flex items-center gap-1"><i data-lucide="repeat"
-                                class="w-3 h-3 text-gray-400"></i> Repeat for:</label>
-                        <select id="repeatWeeksSelect"
-                            class="bg-gray-800 border border-gray-600 rounded p-1 text-white shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
-                            <option value="0">Current week only</option>
-                            <option value="1">1 more week</option>
-                            <option value="2">2 more weeks</option>
-                            <option value="3">3 more weeks</option>
-                            <option value="4">4 more weeks</option>
+                        <select id="staffNameSelect"
+                            class="bg-gray-800 border border-gray-700 rounded-lg p-2.5 focus:ring-orange-500 focus:border-orange-500 transition w-full sm:w-64 text-white">
+                            <option value="">Select Employee</option>
                         </select>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t border-gray-800 flex flex-wrap gap-4">
-                        <button type="button" id="saveWeekShiftsBtn"
-                            class="flex flex-grow justify-center items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-4 rounded-lg transition"
-                            data-translate="saveWeek"><i data-lucide="save" class="w-5 h-5"></i> Save Period</button>
-                        <button type="button" id="clearWeekShiftsBtn"
-                            class="flex flex-grow justify-center items-center gap-2 bg-red-900 hover:bg-red-800 border border-red-700 text-white font-bold py-2.5 px-4 rounded-lg transition"
-                            data-translate="clearWeek"><i data-lucide="trash-2" class="w-5 h-5 text-white"></i> Clear
-                            Period</button>
+
+                </div>
+
+                <div class="flex justify-end mb-2">
+                    <div class="view-controls flex gap-2 rounded-lg bg-gray-800 p-1 w-full max-w-[240px]">
+                        <button data-view="week"
+                            class="view-btn flex-1 text-sm py-1.5 px-3 rounded-md transition text-gray-300 hover:bg-gray-700">Week</button>
+                        <button data-view="fortnight"
+                            class="view-btn flex-1 text-sm py-1.5 px-3 rounded-md transition active bg-orange-500 text-white font-bold">14
+                            Days</button>
                     </div>
+                </div>
+
+                <div id="quick-fill-container"
+                    class="flex items-center gap-2 p-2 bg-gray-800 border border-gray-700 rounded-lg mb-2 mt-4 hidden">
+                    <span class="text-xs font-bold text-gray-300 w-16">Quick Fill:</span>
+                    <div class="relative flex items-center">
+                        <i data-lucide="clock" class="absolute left-1.5 w-3 h-3 text-gray-500 pointer-events-none"></i>
+                        <input type="time" id="quickFillStart" lang="en-GB"
+                            class="bg-black border border-gray-600 pl-6 pr-1 py-1.5 rounded text-xs w-[110px] text-white"
+                            style="color-scheme: dark;">
+                    </div>
+                    <span class="text-xs text-gray-400">-</span>
+                    <div class="relative flex items-center">
+                        <i data-lucide="clock" class="absolute left-1.5 w-3 h-3 text-gray-500 pointer-events-none"></i>
+                        <input type="time" id="quickFillEnd" lang="en-GB"
+                            class="bg-black border border-gray-600 pl-6 pr-1 py-1.5 rounded text-xs w-[110px] text-white"
+                            style="color-scheme: dark;">
+                    </div>
+                    <button id="quickFillBtn"
+                        class="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg ml-auto transition-colors">Apply
+                        to All</button>
+                </div>
+
+                <div id="weekly-editor-container" class="space-y-2 max-h-[50vh] overflow-y-auto pr-2"></div>
+
+                <div class="text-right font-bold text-lg mt-4 pr-2 text-orange-400">
+                    <p class="text-orange-500"><span id="total-hours-label">Total
+                            Hours</span>:
+                        <span id="weekly-total-hours" class="text-white">0.0</span> hrs
+                    </p>
+                </div>
+
+                <div class="mt-2 flex items-center justify-end pr-2 text-sm text-gray-300">
+                    <label for="repeatWeeksSelect" class="mr-2 flex items-center gap-1"><i data-lucide="repeat"
+                            class="w-3 h-3 text-gray-400"></i> Repeat for:</label>
+                    <select id="repeatWeeksSelect"
+                        class="bg-gray-800 border border-gray-600 rounded p-1 text-white shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
+                        <option value="0">Current week only</option>
+                        <option value="1">1 more week</option>
+                        <option value="2">2 more weeks</option>
+                        <option value="3">3 more weeks</option>
+                        <option value="4">4 more weeks</option>
+                    </select>
+                </div>
+
+
+            </div>
+            <!-- End Flex Column -->
+
+            <!-- Schedule Container Component (Full Width) -->
+            <div class="flex flex-col flex-1 gap-2 relative mt-6 h-full w-full">
+                <div class="flex justify-between items-end px-2 md:px-0 w-full shrink-0">
+                    <h3 class="text-xl font-bold text-gray-300 hidden sm:block">The Schedule Grid</h3>
+                    <div
+                        class="view-controls flex gap-2 rounded-lg bg-gray-900 shadow-md p-1 w-full sm:w-auto min-w-[200px]">
+                        <button data-view="week"
+                            class="view-btn flex-1 text-sm py-1.5 px-4 rounded-md transition text-gray-300 hover:bg-gray-800">Week</button>
+                        <button data-view="fortnight"
+                            class="view-btn flex-1 text-sm py-1.5 px-4 rounded-md transition active bg-orange-500 text-white font-bold">14
+                            Days</button>
+                    </div>
+                </div>
+                <div id="schedule-container"
+                    class="overflow-auto bg-white p-2 md:p-4 rounded-xl shadow-md relative z-0 flex-1 min-h-[60vh] lg:min-h-[calc(100vh-350px)]">
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN (Side Panel) -->
-            <div class="lg:col-span-1 flex flex-col gap-6 w-full">
-                <!-- Summary Card -->
-                <div id="dashboard-card" class="admin-only hidden">
-                    <div id="dashboard" class="bg-gray-900 p-4 md:p-6 rounded-2xl shadow-lg ">
-                        <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2 cursor-pointer group"
-                            id="dashboardToggleBtn">
-                            <h2 class="text-xl md:text-2xl font-semibold text-white" data-translate="costDashboard">Cost
-                                Dashboard</h2>
-                            <i data-lucide="chevron-up" id="dashboardToggleIcon"
-                                class="w-6 h-6 text-gray-400 group-hover:text-white transition-all duration-300"></i>
-                        </div>
-                        <div id="dashboardContent"
-                            class="overflow-hidden transition-all duration-500 max-h-[1000px] opacity-100">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-black p-2 md:p-4 rounded-lg h-[300px] md:h-[400px]">
-                                    <canvas id="hoursChart"></canvas>
-                                </div>
-                                <div
-                                    class="bg-black p-2 md:p-4 rounded-lg flex flex-col items-center justify-center h-[300px] md:h-[400px]">
-                                    <h3 class="text-gray-400 text-sm mb-2" data-translate="hoursBudget">Hours Budget
-                                    </h3>
-                                    <div class="relative flex-1 w-full flex items-center justify-center min-h-0">
-                                        <canvas id="budgetChart"></canvas>
-                                    </div>
-                                    <div id="budgetInfo" class="mt-2 text-center shrink-0"></div>
-                                </div>
-                            </div>
-                        </div>
+            <div id="toast"
+                class="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50">
+                <p id="toast-message"></p>
+            </div>
+        </div>
+        <!-- End Main Body Container -->
+
+        <!-- Dim Overlay -->
+        <div id="sidebarOverlay"
+            class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300 cursor-pointer">
+        </div>
+
+        <!-- Sidebar Panel -->
+        <div id="saasSidebar"
+            class="fixed top-0 left-0 h-full w-72 bg-gray-900 border-r border-gray-800 z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+            <!-- Header -->
+            <div class="px-5 py-4 flex items-center justify-between border-b border-gray-800">
+                <h2 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                    <img class="h-6 w-auto" src="images/logo_r.png" alt="Logo">
+                    Roster Manager
+                </h2>
+                <button id="closeSidebarBtn"
+                    class="text-gray-400 hover:text-white transition p-1 bg-gray-800 rounded-md hover:bg-red-500/20 hover:text-red-400"><i
+                        data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto w-full flex flex-col">
+                <!-- Share Section -->
+                <div class="px-5 py-5 border-b border-gray-800">
+                    <h3 class="text-[10px] uppercase font-bold text-gray-500 mb-3 tracking-widest pl-2">Share</h3>
+                    <div class="flex flex-col gap-1.5">
+                        <button id="sidebarExportBtn"
+                            class="text-left py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium"><i
+                                data-lucide="download" class="w-4 h-4 text-gray-400"></i> Export Roster</button>
+                        <button id="sidebarPdfBtn"
+                            class="text-left py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium"><i
+                                data-lucide="file-text" class="w-4 h-4 text-gray-400"></i> Download PDF</button>
+                        <button id="sidebarSyncBtn"
+                            class="text-left py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium"><i
+                                data-lucide="calendar-sync" class="w-4 h-4 text-gray-400"></i> Sync Calendar</button>
                     </div>
                 </div>
 
-                <!-- Export & Share Card -->
-                <div class="bg-gray-900 p-5 rounded-2xl shadow-lg flex flex-col gap-3">
-                    <h3 class="text-white font-bold text-lg flex items-center gap-2"><i data-lucide="share-2"
-                            class="w-5 h-5 text-gray-400"></i> Export & Share</h3>
-                    <button id="mainExportBtn"
-                        class="bg-white hover:bg-gray-200 text-black font-bold py-2.5 px-4 rounded-lg transition duration-300 flex items-center justify-center gap-2 w-full">
-                        <i data-lucide="external-link" class="w-5 h-5"></i> Export Roster
-                    </button>
+                <!-- Admin Tools Section -->
+                <div class="px-5 py-5 border-b border-gray-800 admin-only hidden flex-col">
+                    <h3 class="text-[10px] uppercase font-bold text-gray-500 mb-3 tracking-widest pl-2">Admin Tools</h3>
+                    <div class="flex flex-col gap-1.5">
+                        <button id="openMembersBtn"
+                            class="text-left py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium"><i
+                                data-lucide="users" class="w-4 h-4 text-orange-400"></i> Manage Members</button>
+                        <button id="openStoresBtn"
+                            class="text-left py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium"><i
+                                data-lucide="store" class="w-4 h-4 text-orange-400"></i> Manage Stores</button>
+                        <button id="openEngineRulesBtn"
+                            class="text-left py-2 px-3 rounded-md text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium"><i
+                                data-lucide="settings-2" class="w-4 h-4 text-orange-400"></i> Engine Rules</button>
+                    </div>
                 </div>
 
-                <!-- Support Card -->
-                <div class="bg-gray-900 p-5 rounded-2xl shadow-lg flex flex-col gap-3">
-                    <h3 class="text-orange-400 font-bold flex items-center gap-2"><i data-lucide="heart"
-                            class="w-5 h-5"></i> Support</h3>
-                    <p class="text-gray-400 text-xs text-center mb-1">Your support helps cover hosting and improvements.
-                    </p>
-                    <div id="standard-support-buttons" class="flex flex-col gap-3">
+                <!-- Support Section -->
+                <div class="px-5 py-5 flex-col flex mt-auto">
+                    <h3
+                        class="text-[10px] uppercase font-bold text-orange-500/80 mb-3 tracking-widest flex items-center gap-1.5 pl-2">
+                        <i data-lucide="heart" class="w-3 h-3"></i> Support
+                    </h3>
+                    <div class="flex flex-col gap-3">
+                        <p class="text-gray-500 text-[10px] pl-2 mb-1">Your support helps cover hosting and
+                            improvements.</p>
                         <button id="supportDonateBtn"
                             class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 px-4 rounded-lg transition duration-300 w-full"><i
                                 data-lucide="coffee" class="w-4 h-4"></i> Donate $5</button>
+                        <div id="paypal-button-container" class="mt-1 text-center w-full z-0 relative"></div>
                     </div>
-                    <div id="paypal-button-container" class="mt-2 text-center w-full z-0 relative"></div>
                 </div>
 
-                <!-- Admin Tools Card -->
-                <div id="admin-tools-card"
-                    class="bg-gray-900 rounded-2xl shadow-lg flex-col hidden admin-only overflow-hidden">
-                    <div class="flex justify-between items-center cursor-pointer group p-5 pb-5 border-b border-gray-800"
-                        id="adminToolsToggleBtn">
-                        <h3 class="text-white font-bold text-lg flex items-center gap-2"><i data-lucide="shield"
-                                class="w-5 h-5 text-gray-400"></i> Admin Tools</h3>
-                        <i data-lucide="chevron-up" id="adminToolsToggleIcon"
-                            class="w-6 h-6 text-gray-400 group-hover:text-white transition-all duration-300"></i>
+                <!-- Footer -->
+                <div class="p-4 bg-black/40 text-center mt-auto">
+                    <span
+                        class="text-[9px] text-gray-600 uppercase tracking-widest font-semibold flex items-center justify-center gap-1.5"><i
+                            data-lucide="zap" class="w-3 h-3 text-orange-500/70"></i> Powered by ByPat</span>
+                </div>
+            </div>
+        </div>
+        <div id="loginModal"
+            class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
+            <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm modal-content transform scale-95 p-6">
+                <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-800">
+                    <h2 class="text-2xl font-semibold text-orange-500">Admin Login</h2>
+                    <button id="closeLoginModalBtn" class="text-gray-400 hover:text-white transition"><i data-lucide="x"
+                            class="w-6 h-6"></i></button>
+                </div>
+                <form id="loginForm" class="space-y-4">
+                    <input type="text" id="username" placeholder="Username"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white" required>
+                    <input type="password" id="password" placeholder="Password"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white" required>
+                    <p id="loginError" class="text-red-400 text-sm hidden"></p>
+                    <button type="submit"
+                        class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 rounded-lg transition">Sign
+                        In</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="storesModal"
+            class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
+            <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg modal-content transform scale-95 p-6">
+                <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-800">
+                    <h2 class="text-2xl font-semibold text-orange-500">Manage Stores</h2>
+                    <button id="closeStoresModalBtn" class="text-gray-400 hover:text-white transition"><i
+                            data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form id="addStoreForm" class="space-y-4 bg-black p-4 rounded-lg">
+                        <h3 id="storeFormTitle" class="text-lg font-semibold">Add New Store
+                        </h3>
+                        <input type="text" id="storeName" placeholder="Store Name"
+                            class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white" required>
+                        <input type="number" id="storeMaxHours" placeholder="Max hours"
+                            class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white" step="0.5">
+                        <div class="flex gap-2">
+                            <button type="submit" id="storeSubmitBtn"
+                                class="flex-1 bg-orange-600 hover:bg-orange-700 py-2 rounded font-bold">Add</button>
+                            <button type="button" id="storeCancelBtn"
+                                class="hidden flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded font-bold">Cancel</button>
+                        </div>
+                    </form>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Current Stores</h3>
+                        <ul id="storesList" class="space-y-2 max-h-64 overflow-y-auto"></ul>
                     </div>
-                    <div id="adminToolsContent"
-                        class="overflow-hidden transition-all duration-500 max-h-[1000px] opacity-100 bg-gray-900">
-                        <div class="p-5 flex flex-col gap-3">
-                            <button id="openEngineRulesBtn"
-                                class="bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg flex items-center gap-3 transition w-full text-sm">
-                                <i data-lucide="settings-2" class="w-4 h-4 text-orange-400"></i> Engine Rules
+                </div>
+            </div>
+        </div>
+
+        <div id="membersModal"
+            class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
+            <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl modal-content transform scale-95 p-6">
+                <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-800">
+                    <h2 class="text-2xl font-semibold text-orange-500">Manage Members
+                    </h2>
+                    <button id="closeMembersModalBtn" class="text-gray-400 hover:text-white transition"><i
+                            data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form id="addMemberForm" class="space-y-3 bg-black p-4 rounded-lg">
+                        <h3 id="memberFormTitle" class="text-lg font-semibold">Add Member
+                        </h3>
+                        <input type="text" id="memberName" placeholder="Full Name"
+                            class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white" required>
+                        <input type="tel" id="memberPhone" placeholder="Phone Number"
+                            class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white">
+                        <input type="email" id="memberEmail" placeholder="Email Address"
+                            class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white">
+                        <select id="memberEmploymentType"
+                            class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white">
+                            <option value="casual">Casual</option>
+                            <option value="full_time">Full-Time</option>
+                            <option value="cash">Cash</option>
+                        </select>
+                        <div id="memberStoresCheckboxes"
+                            class="p-2 bg-gray-800 rounded border border-gray-700 space-y-1 max-h-32 overflow-y-auto">
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <button type="submit" id="memberSubmitBtn"
+                                class="flex-1 bg-orange-600 hover:bg-orange-700 py-2 rounded font-bold">Add</button>
+                            <button type="button" id="memberCancelBtn"
+                                class="hidden flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded font-bold">Cancel</button>
+                        </div>
+                    </form>
+                    <div class="flex flex-col h-full">
+                        <h3 class="text-lg font-semibold mb-3">Current Members</h3>
+                        <div class="space-y-3 mb-4 flex-shrink-0">
+                            <!-- Search Box -->
+                            <div class="relative">
+                                <i data-lucide="search"
+                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                                <input type="text" id="memberSearchInput" placeholder="Search name, phone, or email..."
+                                    class="w-full bg-gray-800 border-gray-700 rounded-lg pl-9 p-2 text-white text-sm focus:ring-1 focus:ring-orange-500 outline-none">
+                            </div>
+
+                            <!-- Filter Dropdown -->
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-gray-400 whitespace-nowrap">Viewing members for:</label>
+                                <select id="memberMgmtStoreFilter"
+                                    class="w-full bg-gray-800 border-gray-700 rounded p-1.5 text-white text-sm">
+                                    <option value="all">All stores</option>
+                                </select>
+                            </div>
+
+                            <!-- Quick Switch Pills -->
+                            <div id="memberMgmtQuickPills" class="flex flex-wrap gap-2">
+                                <button
+                                    class="store-pill active text-xs px-3 py-1 bg-orange-600 text-white rounded-full transition-colors"
+                                    data-store-id="all">All</button>
+                            </div>
+                        </div>
+
+                        <ul id="membersList" class="space-y-2 overflow-y-auto max-h-96 pb-2"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="engineRulesModal"
+            class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
+            <div
+                class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-md modal-content transform scale-95 overflow-hidden">
+                <div class="p-4 bg-orange-600 flex justify-between items-center">
+                    <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="settings-2"
+                            class="w-5 h-5"></i>
+                        Engine Rules</h2>
+                    <button id="closeEngineRulesModalBtn" class="hover:text-black transition"><i data-lucide="x"
+                            class="w-6 h-6"></i></button>
+                </div>
+                <form id="engineRulesForm" class="p-6 space-y-4">
+                    <div><label class="block text-sm text-gray-400 mb-1">Base Rate ($)</label><input type="number"
+                            step="0.01" id="ruleBaseRate" class="w-full bg-black border-gray-800 rounded p-2 text-white"
+                            required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm text-gray-400 mb-1">Sat Mult</label><input type="number"
+                                step="0.1" id="ruleSatMult"
+                                class="w-full bg-black border-gray-800 rounded p-2 text-white" required>
+                        </div>
+                        <div><label class="block text-sm text-gray-400 mb-1">Sun Mult</label><input type="number"
+                                step="0.1" id="ruleSunMult"
+                                class="w-full bg-black border-gray-800 rounded p-2 text-white" required>
+                        </div>
+                    </div>
+                    <div><label class="block text-sm text-gray-400 mb-1">PH Mult</label><input type="number" step="0.1"
+                            id="rulePhMult" class="w-full bg-black border-gray-800 rounded p-2 text-white" required>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-orange-600 hover:bg-orange-700 py-3 rounded-xl font-bold transition">Save
+                        Rules</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="exportModal"
+            class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
+            <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm modal-content transform scale-95 p-6">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i data-lucide="share-2"
+                            class="w-5 h-5 text-gray-400"></i> Export Options</h2>
+                    <button id="closeExportModalBtn" class="text-gray-400 hover:text-white transition"><i
+                            data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="exportPdfBtn"
+                        class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center flex-wrap gap-2 justify-between border border-gray-700">
+                        <div class="flex items-center gap-3"><i data-lucide="file-text"
+                                class="w-5 h-5 text-red-500"></i>
+                            <span>Download as PDF</span>
+                        </div>
+                        <span class="text-xs text-gray-500">Entire Roster</span>
+                    </button>
+
+                    <div class="mt-4 pt-4 border-t border-gray-800 mb-2">
+                        <label class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 block">Personal
+                            Schedule Sync</label>
+                        <select id="employeeSelectForDownload"
+                            class="w-full bg-black border border-gray-700 rounded p-3 text-sm text-white mb-3"></select>
+                        <div class="flex flex-col gap-2">
+                            <button id="downloadPersonalBtn"
+                                class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition border border-gray-700 flex items-center justify-between flex-wrap gap-2">
+                                <div class="flex items-center gap-3"><i data-lucide="calendar"
+                                        class="w-5 h-5 text-orange-400"></i> <span>Download (.ICS)</span></div>
+                                <span class="text-xs text-gray-500">Apple / Outlook</span>
                             </button>
-                            <button id="openStoresBtn"
-                                class="bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg flex items-center gap-3 transition w-full text-sm">
-                                <i data-lucide="store" class="w-4 h-4 text-orange-400"></i> Manage Stores
-                            </button>
-                            <button id="openMembersBtn"
-                                class="bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg flex items-center gap-3 transition w-full text-sm">
-                                <i data-lucide="users" class="w-4 h-4 text-orange-400"></i> Manage Members
+                            <button id="addToGoogleCalBtn"
+                                class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition border border-gray-700 flex items-center justify-between flex-wrap gap-2">
+                                <div class="flex items-center gap-3"><i data-lucide="calendar-plus"
+                                        class="w-5 h-5 text-blue-400"></i> <span>Add to Calendar</span></div>
+                                <span class="text-xs text-gray-500">Google Calendar</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- End Right Column -->
-
         </div>
-        <!-- End Grid -->
 
-        <!-- Schedule Container Component (Full Width) -->
-        <div class="flex flex-col flex-1 gap-2 relative mt-6 h-full w-full">
-            <div class="flex justify-between items-end px-2 md:px-0 w-full shrink-0">
-                <h3 class="text-xl font-bold text-gray-300 hidden sm:block">The Schedule Grid</h3>
-                <div
-                    class="view-controls flex gap-2 rounded-lg bg-gray-900 shadow-md p-1 w-full sm:w-auto min-w-[200px]">
-                    <button data-view="week"
-                        class="view-btn flex-1 text-sm py-1.5 px-4 rounded-md transition text-gray-300 hover:bg-gray-800"
-                        data-translate="weekView">Week</button>
-                    <button data-view="fortnight"
-                        class="view-btn flex-1 text-sm py-1.5 px-4 rounded-md transition active bg-orange-500 text-white font-bold"
-                        data-translate="fortnightView">14 Days</button>
+        <div id="quickEditPopup"
+            class="hidden absolute bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 z-40 w-64 transform scale-95 opacity-0 transition-all duration-200">
+            <h3 class="text-orange-500 font-bold mb-3 text-sm">Quick Edit</h3>
+            <div class="flex flex-col gap-3">
+                <div class="flex gap-2 items-center">
+                    <input type="time" id="quickEditStart"
+                        class="w-full bg-gray-800 border-gray-700 text-white rounded p-1 text-sm">
+                    <span class="text-gray-400">-</span>
+                    <input type="time" id="quickEditEnd"
+                        class="w-full bg-gray-800 border-gray-700 text-white rounded p-1 text-sm">
                 </div>
-            </div>
-            <div id="schedule-container"
-                class="overflow-auto bg-white p-2 md:p-4 rounded-xl shadow-md relative z-0 flex-1 min-h-[60vh] lg:min-h-[calc(100vh-350px)]">
-            </div>
-        </div>
-
-        <div id="toast"
-            class="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50">
-            <p id="toast-message"></p>
-        </div>
-    </div>
-    <!-- End Main Body Container -->
-
-    <!-- Modals -->
-    <div id="loginModal"
-        class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm modal-content transform scale-95 p-6">
-            <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-800">
-                <h2 class="text-2xl font-semibold text-orange-500" data-translate="adminLogin">Admin Login</h2>
-                <button id="closeLoginModalBtn" class="text-gray-400 hover:text-white transition"><i data-lucide="x"
-                        class="w-6 h-6"></i></button>
-            </div>
-            <form id="loginForm" class="space-y-4">
-                <input type="text" id="username" data-translate-placeholder="usernamePlaceholder" placeholder="Username"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white" required>
-                <input type="password" id="password" data-translate-placeholder="passwordPlaceholder"
-                    placeholder="Password" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white"
-                    required>
-                <p id="loginError" class="text-red-400 text-sm hidden"></p>
-                <button type="submit"
-                    class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 rounded-lg transition"
-                    data-translate="signIn">Sign In</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="storesModal"
-        class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg modal-content transform scale-95 p-6">
-            <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-800">
-                <h2 class="text-2xl font-semibold text-orange-500" data-translate="manageStores">Manage Stores</h2>
-                <button id="closeStoresModalBtn" class="text-gray-400 hover:text-white transition"><i data-lucide="x"
-                        class="w-6 h-6"></i></button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <form id="addStoreForm" class="space-y-4 bg-black p-4 rounded-lg">
-                    <h3 id="storeFormTitle" class="text-lg font-semibold" data-translate="addNewStore">Add New Store
-                    </h3>
-                    <input type="text" id="storeName" placeholder="Store Name"
-                        class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white" required>
-                    <input type="number" id="storeMaxHours" placeholder="Max hours"
-                        class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white" step="0.5">
-                    <div class="flex gap-2">
-                        <button type="submit" id="storeSubmitBtn"
-                            class="flex-1 bg-orange-600 hover:bg-orange-700 py-2 rounded font-bold">Add</button>
-                        <button type="button" id="storeCancelBtn"
-                            class="hidden flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded font-bold">Cancel</button>
-                    </div>
-                </form>
-                <div>
-                    <h3 class="text-lg font-semibold mb-2" data-translate="currentStores">Current Stores</h3>
-                    <ul id="storesList" class="space-y-2 max-h-64 overflow-y-auto"></ul>
+                <div class="flex gap-2">
+                    <button id="quickEditApplyBtn"
+                        class="flex-1 bg-orange-600 py-2 rounded text-xs font-bold">Apply</button>
+                    <button id="quickEditClearBtn"
+                        class="flex-1 bg-red-600 py-2 rounded text-xs font-bold">Clear</button>
                 </div>
+                <button id="quickEditCancelBtn" class="text-gray-400 text-xs text-center p-1">Cancel</button>
             </div>
         </div>
-    </div>
 
-    <div id="membersModal"
-        class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl modal-content transform scale-95 p-6">
-            <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-800">
-                <h2 class="text-2xl font-semibold text-orange-500" data-translate="manageMembers">Manage Members
-                </h2>
-                <button id="closeMembersModalBtn" class="text-gray-400 hover:text-white transition"><i data-lucide="x"
-                        class="w-6 h-6"></i></button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <form id="addMemberForm" class="space-y-3 bg-black p-4 rounded-lg">
-                    <h3 id="memberFormTitle" class="text-lg font-semibold" data-translate="addNewMember">Add Member
-                    </h3>
-                    <input type="text" id="memberName" placeholder="Full Name"
-                        class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white" required>
-                    <input type="tel" id="memberPhone" placeholder="Phone Number"
-                        class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white">
-                    <input type="email" id="memberEmail" placeholder="Email Address"
-                        class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white">
-                    <select id="memberEmploymentType" class="w-full bg-gray-800 border-gray-700 rounded p-2 text-white">
-                        <option value="casual">Casual</option>
-                        <option value="full_time">Full-Time</option>
-                        <option value="cash">Cash</option>
-                    </select>
-                    <div id="memberStoresCheckboxes"
-                        class="p-2 bg-gray-800 rounded border border-gray-700 space-y-1 max-h-32 overflow-y-auto">
-                    </div>
-                    <div class="flex gap-2 mt-2">
-                        <button type="submit" id="memberSubmitBtn"
-                            class="flex-1 bg-orange-600 hover:bg-orange-700 py-2 rounded font-bold">Add</button>
-                        <button type="button" id="memberCancelBtn"
-                            class="hidden flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded font-bold">Cancel</button>
-                    </div>
-                </form>
-                <div>
-                    <h3 class="text-lg font-semibold mb-2" data-translate="currentMembers">Current Members</h3>
-                    <ul id="membersList" class="space-y-2 max-h-80 overflow-y-auto"></ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="engineRulesModal"
-        class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-md modal-content transform scale-95 overflow-hidden">
-            <div class="p-4 bg-orange-600 flex justify-between items-center">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="settings-2" class="w-5 h-5"></i>
-                    Engine Rules</h2>
-                <button id="closeEngineRulesModalBtn" class="hover:text-black transition"><i data-lucide="x"
-                        class="w-6 h-6"></i></button>
-            </div>
-            <form id="engineRulesForm" class="p-6 space-y-4">
-                <div><label class="block text-sm text-gray-400 mb-1">Base Rate ($)</label><input type="number"
-                        step="0.01" id="ruleBaseRate" class="w-full bg-black border-gray-800 rounded p-2 text-white"
-                        required></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm text-gray-400 mb-1">Sat Mult</label><input type="number" step="0.1"
-                            id="ruleSatMult" class="w-full bg-black border-gray-800 rounded p-2 text-white" required>
-                    </div>
-                    <div><label class="block text-sm text-gray-400 mb-1">Sun Mult</label><input type="number" step="0.1"
-                            id="ruleSunMult" class="w-full bg-black border-gray-800 rounded p-2 text-white" required>
-                    </div>
-                </div>
-                <div><label class="block text-sm text-gray-400 mb-1">PH Mult</label><input type="number" step="0.1"
-                        id="rulePhMult" class="w-full bg-black border-gray-800 rounded p-2 text-white" required>
-                </div>
-                <button type="submit"
-                    class="w-full bg-orange-600 hover:bg-orange-700 py-3 rounded-xl font-bold transition">Save
-                    Rules</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="exportModal"
-        class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm modal-content transform scale-95 p-6">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2">
-                <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i data-lucide="share-2"
-                        class="w-5 h-5 text-gray-400"></i> Export Options</h2>
-                <button id="closeExportModalBtn" class="text-gray-400 hover:text-white transition"><i data-lucide="x"
-                        class="w-6 h-6"></i></button>
-            </div>
-
-            <div class="space-y-3">
-                <button id="exportPdfBtn"
-                    class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center flex-wrap gap-2 justify-between border border-gray-700">
-                    <div class="flex items-center gap-3"><i data-lucide="file-text" class="w-5 h-5 text-red-500"></i>
-                        <span data-translate="exportPDF">Download as PDF</span>
-                    </div>
-                    <span class="text-xs text-gray-500">Entire Roster</span>
-                </button>
-
-                <div class="mt-4 pt-4 border-t border-gray-800 mb-2">
-                    <label class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 block">Personal
-                        Schedule Sync</label>
-                    <select id="employeeSelectForDownload"
-                        class="w-full bg-black border border-gray-700 rounded p-3 text-sm text-white mb-3"></select>
-                    <div class="flex flex-col gap-2">
-                        <button id="downloadPersonalBtn"
-                            class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition border border-gray-700 flex items-center justify-between flex-wrap gap-2">
-                            <div class="flex items-center gap-3"><i data-lucide="calendar"
-                                    class="w-5 h-5 text-orange-400"></i> <span>Download (.ICS)</span></div>
-                            <span class="text-xs text-gray-500">Apple / Outlook</span>
-                        </button>
-                        <button id="addToGoogleCalBtn"
-                            class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition border border-gray-700 flex items-center justify-between flex-wrap gap-2">
-                            <div class="flex items-center gap-3"><i data-lucide="calendar-plus"
-                                    class="w-5 h-5 text-blue-400"></i> <span>Add to Calendar</span></div>
-                            <span class="text-xs text-gray-500">Google Calendar</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="quickEditPopup"
-        class="hidden absolute bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 z-40 w-64 transform scale-95 opacity-0 transition-all duration-200">
-        <h3 class="text-orange-500 font-bold mb-3 text-sm">Quick Edit</h3>
-        <div class="flex flex-col gap-3">
-            <div class="flex gap-2 items-center">
-                <input type="time" id="quickEditStart"
-                    class="w-full bg-gray-800 border-gray-700 text-white rounded p-1 text-sm">
-                <span class="text-gray-400">-</span>
-                <input type="time" id="quickEditEnd"
-                    class="w-full bg-gray-800 border-gray-700 text-white rounded p-1 text-sm">
-            </div>
-            <div class="flex gap-2">
-                <button id="quickEditApplyBtn"
-                    class="flex-1 bg-orange-600 py-2 rounded text-xs font-bold">Apply</button>
-                <button id="quickEditClearBtn" class="flex-1 bg-red-600 py-2 rounded text-xs font-bold">Clear</button>
-            </div>
-            <button id="quickEditCancelBtn" class="text-gray-400 text-xs text-center p-1">Cancel</button>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            let appData = { stores: [], members: [], shifts: [], settings: {} };
-            let hoursChart = null, budgetChart = null, currentView = 'fortnight', isAdmin = false, currentLang = 'en', isDragging = false, dragStartCell = null;
-
-            const dom = {
-                loginBtn: document.getElementById('loginBtn'), logoutBtn: document.getElementById('logoutBtn'), loginModal: document.getElementById('loginModal'), closeLoginModalBtn: document.getElementById('closeLoginModalBtn'), loginForm: document.getElementById('loginForm'), loginError: document.getElementById('loginError'),
-                langEnBtn: document.getElementById('lang-en'), langEsBtn: document.getElementById('lang-es'),
-                openEngineRulesBtn: document.getElementById('openEngineRulesBtn'), engineRulesModal: document.getElementById('engineRulesModal'), closeEngineRulesModalBtn: document.getElementById('closeEngineRulesModalBtn'), engineRulesForm: document.getElementById('engineRulesForm'), ruleBaseRate: document.getElementById('ruleBaseRate'), ruleSatMult: document.getElementById('ruleSatMult'), ruleSunMult: document.getElementById('ruleSunMult'), rulePhMult: document.getElementById('rulePhMult'),
-                openStoresBtn: document.getElementById('openStoresBtn'), storesModal: document.getElementById('storesModal'), closeStoresModalBtn: document.getElementById('closeStoresModalBtn'), addStoreForm: document.getElementById('addStoreForm'), storesList: document.getElementById('storesList'),
-                openMembersBtn: document.getElementById('openMembersBtn'), membersModal: document.getElementById('membersModal'), closeMembersModalBtn: document.getElementById('closeMembersModalBtn'), addMemberForm: document.getElementById('addMemberForm'), membersList: document.getElementById('membersList'), memberStoresCheckboxes: document.getElementById('memberStoresCheckboxes'),
-                exportPdfBtn: document.getElementById('exportPdfBtn'), mainExportBtn: document.getElementById('mainExportBtn'), exportModal: document.getElementById('exportModal'), closeExportModalBtn: document.getElementById('closeExportModalBtn'), employeeSelectForDownload: document.getElementById('employeeSelectForDownload'), downloadPersonalBtn: document.getElementById('downloadPersonalBtn'), addToGoogleCalBtn: document.getElementById('addToGoogleCalBtn'),
-                storeSelector: document.getElementById('storeSelector'), editorStoreSelector: document.getElementById('editorStoreSelector'), weekStartDateInput: document.getElementById('weekStartDate'), viewSelectorButtons: document.querySelectorAll('.view-btn'),
-                scheduleContainer: document.getElementById('schedule-container'), dashboardSection: document.getElementById('dashboard'), hoursChartCanvas: document.getElementById('hoursChart'), budgetChartCanvas: document.getElementById('budgetChart'), budgetInfo: document.getElementById('budgetInfo'),
-                staffNameSelect: document.getElementById('staffNameSelect'), weeklyEditorContainer: document.getElementById('weekly-editor-container'), weeklyTotalHours: document.getElementById('weekly-total-hours'), saveWeekBtn: document.getElementById('saveWeekShiftsBtn'), clearWeekBtn: document.getElementById('clearWeekShiftsBtn'),
-                quickEditPopup: document.getElementById('quickEditPopup'), quickEditStart: document.getElementById('quickEditStart'), quickEditEnd: document.getElementById('quickEditEnd'), quickEditApplyBtn: document.getElementById('quickEditApplyBtn'), quickEditClearBtn: document.getElementById('quickEditClearBtn'), quickEditCancelBtn: document.getElementById('quickEditCancelBtn'),
-                toast: document.getElementById('toast'), toastMessage: document.getElementById('toast-message'),
-                adminControls: document.querySelectorAll('.admin-only'), employeeHeaderControls: document.querySelectorAll('.employee-only'), shiftEditor: document.getElementById('shift-editor'),
-                liveClock: document.getElementById('liveClock'),
-                dashboardToggleBtn: document.getElementById('dashboardToggleBtn'), dashboardContent: document.getElementById('dashboardContent'), dashboardToggleIcon: document.getElementById('dashboardToggleIcon'),
-                adminToolsToggleBtn: document.getElementById('adminToolsToggleBtn'), adminToolsContent: document.getElementById('adminToolsContent'), adminToolsToggleIcon: document.getElementById('adminToolsToggleIcon')
-            };
-
-            function updateLiveClock() {
-                if (!dom.liveClock) return;
-                const now = new Date();
-                const opts = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-                dom.liveClock.textContent = now.toLocaleDateString(currentLang, opts).replace(',', ' |');
-            }
-            setInterval(updateLiveClock, 1000);
-            updateLiveClock();
-
-            const translations = {
-                login: { en: 'Login', es: 'Ingresar' }, logout: { en: 'Logout', es: 'Salir' }, mainTitle: { en: 'Roster Manager', es: 'Gestor' }, subTitle: { en: "Plan easily.", es: 'Planifica.' },
-                manageMembers: { en: 'Manage Members', es: 'Miembros' }, manageStores: { en: 'Manage Stores', es: 'Tiendas' }, exportPDF: { en: 'Export PDF', es: 'Exportar PDF' },
-                downloadYourRoster: { en: 'Download Your Roster', es: 'Mi Horario' }, store: { en: 'Store', es: 'Tienda' }, startDate: { en: 'Start Date:', es: 'Inicio:' },
-                dayView: { en: 'Day', es: 'Día' }, threeDayView: { en: '3 Days', es: '3 Días' }, weekView: { en: 'Week', es: 'Semana' }, fortnightlyView: { en: '14 Days', es: '14 Días' },
-                costDashboard: { en: 'Cost Dashboard', es: 'Costos' }, weeklyShiftEditor: { en: 'Shift Editor', es: 'Editor' }, employee: { en: 'Employee', es: 'Empleado' },
-                selectEmployee: { en: 'Select Employee', es: 'Seleccionar' }, saveWeek: { en: 'Save Period', es: 'Guardar' }, clearWeek: { en: 'Clear Period', es: 'Limpiar' },
-                totalHours: { en: 'Total Hours', es: 'Total Horas' }, dailyTotalHours: { en: 'Daily Hours', es: 'Horas Diarias' }, dailyTotalCost: { en: 'Daily Cost', es: 'Costo Diario' },
-                hoursBudget: { en: 'Budget', es: 'Presupuesto' }, overBudget: { en: 'Over Budget!', es: '¡Exceso!' }, shiftsUpdated: { en: 'Updated.', es: 'Actualizado.' },
-                adminModeOn: { en: 'Admin mode on.', es: 'Admin activo.' }, adminModeOff: { en: 'Admin mode off.', es: 'Admin inactivo.' }, wrongCredentials: { en: 'Wrong login.', es: 'Error login.' },
-                memberDeleted: { en: 'Deleted.', es: 'Borrado.' }, memberAdded: { en: 'Added.', es: 'Añadido.' }
-            };
-
-            function loadData() {
-                return fetch('/api/data').then(res => res.json()).then(data => {
-                    appData = { ...appData, ...data };
-                    if (!appData.currentStoreId && appData.stores.length > 0) appData.currentStoreId = appData.stores[0].id;
-                    renderEngineRules(); updateAllViews();
-                }).catch(e => console.error(e));
-            }
-
-            const getCurrentStoreMembers = () => appData.members.filter(m => m.storeIds && m.storeIds.includes(appData.currentStoreId));
-            const getCurrentStoreShifts = () => appData.shifts.filter(s => s.storeId === appData.currentStoreId);
-
-            function setLanguage(lang) {
-                currentLang = lang; localStorage.setItem('lang', lang);
-                dom.langEnBtn.classList.toggle('active', lang === 'en'); dom.langEsBtn.classList.toggle('active', lang === 'es');
-                document.querySelectorAll('[data-translate]').forEach(el => { const k = el.dataset.translate; if (translations[k]) el.textContent = translations[k][lang]; });
-                updateAllViews();
-            }
-
-            function showToast(msg, isErr = false) {
-                dom.toastMessage.textContent = msg; dom.toast.classList.remove('bg-green-500', 'bg-red-500');
-                dom.toast.classList.add(isErr ? 'bg-red-500' : 'bg-green-500');
-                dom.toast.classList.remove('opacity-0', 'invisible'); setTimeout(() => dom.toast.classList.add('opacity-0', 'invisible'), 3000);
-            }
-
-            function toggleModal(m) {
-                if (m.classList.contains('hidden')) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); m.querySelector('.modal-content')?.classList.remove('scale-95'); }
-                else { m.classList.add('opacity-0'); m.querySelector('.modal-content')?.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 300); }
-            }
-
-            function renderMembers() {
-                const ms = getCurrentStoreMembers(); dom.membersList.innerHTML = ms.length ? '' : 'No members';
-                ms.forEach(m => {
-                    const li = document.createElement('li'); li.className = 'bg-gray-800 p-2 rounded flex justify-between items-center';
-                    li.innerHTML = `<span>${m.name}</span><div class="flex gap-2"><button class="edit-m text-blue-400 hover:text-blue-300" data-id="${m.id}"><i data-lucide="edit-2" class="w-4 h-4"></i></button><button class="del-m text-red-500 hover:text-red-400" data-id="${m.id}"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
-                    dom.membersList.appendChild(li);
-                });
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
                 lucide.createIcons();
-                dom.membersList.querySelectorAll('.edit-m').forEach(b => b.addEventListener('click', () => editMember(b.dataset.id)));
-                dom.membersList.querySelectorAll('.del-m').forEach(b => b.addEventListener('click', () => {
-                    if (!confirm('Are you sure you want to delete this member?')) return;
+                let currentLang = 'en-AU';
+                let appData = { stores: [], members: [], shifts: [], settings: {} };
+                let memberMgmtFilterStoreId = 'all';
+                let memberMgmtSearchQuery = '';
+                let hoursChart = null, budgetChart = null, currentView = 'fortnight', isAdmin = false, isDragging = false, dragStartCell = null;
+                const getLocalYMD = (d) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+                const dom = {
+                    loginBtn: document.getElementById('loginBtn'), logoutBtn: document.getElementById('logoutBtn'), loginModal: document.getElementById('loginModal'), closeLoginModalBtn: document.getElementById('closeLoginModalBtn'), loginForm: document.getElementById('loginForm'), loginError: document.getElementById('loginError'),
+                    openEngineRulesBtn: document.getElementById('openEngineRulesBtn'), engineRulesModal: document.getElementById('engineRulesModal'), closeEngineRulesModalBtn: document.getElementById('closeEngineRulesModalBtn'), engineRulesForm: document.getElementById('engineRulesForm'), ruleBaseRate: document.getElementById('ruleBaseRate'), ruleSatMult: document.getElementById('ruleSatMult'), ruleSunMult: document.getElementById('ruleSunMult'), rulePhMult: document.getElementById('rulePhMult'),
+                    openStoresBtn: document.getElementById('openStoresBtn'), storesModal: document.getElementById('storesModal'), closeStoresModalBtn: document.getElementById('closeStoresModalBtn'), addStoreForm: document.getElementById('addStoreForm'), storesList: document.getElementById('storesList'),
+                    openMembersBtn: document.getElementById('openMembersBtn'), membersModal: document.getElementById('membersModal'), closeMembersModalBtn: document.getElementById('closeMembersModalBtn'), addMemberForm: document.getElementById('addMemberForm'), membersList: document.getElementById('membersList'), memberStoresCheckboxes: document.getElementById('memberStoresCheckboxes'),
+                    memberSearchInput: document.getElementById('memberSearchInput'), memberMgmtStoreFilter: document.getElementById('memberMgmtStoreFilter'), memberMgmtQuickPills: document.getElementById('memberMgmtQuickPills'),
+                    exportPdfBtn: document.getElementById('exportPdfBtn'), mainExportBtn: document.getElementById('mainExportBtn'), exportModal: document.getElementById('exportModal'), closeExportModalBtn: document.getElementById('closeExportModalBtn'), employeeSelectForDownload: document.getElementById('employeeSelectForDownload'), downloadPersonalBtn: document.getElementById('downloadPersonalBtn'), addToGoogleCalBtn: document.getElementById('addToGoogleCalBtn'),
+                    storeSelector: document.getElementById('storeSelector'), editorStoreSelector: document.getElementById('editorStoreSelector'), weekStartDateInput: document.getElementById('weekStartDate'), viewSelectorButtons: document.querySelectorAll('.view-btn'),
+                    scheduleContainer: document.getElementById('schedule-container'),
+                    staffNameSelect: document.getElementById('staffNameSelect'), weeklyEditorContainer: document.getElementById('weekly-editor-container'), weeklyTotalHours: document.getElementById('weekly-total-hours'),
+                    quickEditPopup: document.getElementById('quickEditPopup'), quickEditStart: document.getElementById('quickEditStart'), quickEditEnd: document.getElementById('quickEditEnd'), quickEditApplyBtn: document.getElementById('quickEditApplyBtn'), quickEditClearBtn: document.getElementById('quickEditClearBtn'), quickEditCancelBtn: document.getElementById('quickEditCancelBtn'),
+                    toast: document.getElementById('toast'), toastMessage: document.getElementById('toast-message'),
+                    adminControls: document.querySelectorAll('.admin-only'), employeeHeaderControls: document.querySelectorAll('.employee-only'), shiftEditor: document.getElementById('shift-editor'),
+                    liveClock: document.getElementById('liveClock'),
+
+                    openSidebarBtn: document.getElementById('openSidebarBtn'), closeSidebarBtn: document.getElementById('closeSidebarBtn'), saasSidebar: document.getElementById('saasSidebar'), sidebarOverlay: document.getElementById('sidebarOverlay'),
+                    sidebarExportBtn: document.getElementById('sidebarExportBtn'), sidebarPdfBtn: document.getElementById('sidebarPdfBtn'), sidebarSyncBtn: document.getElementById('sidebarSyncBtn')
+                };
+
+                function updateLiveClock() {
+                    if (!dom.liveClock) return;
+                    const now = new Date();
+                    const opts = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                    dom.liveClock.textContent = now.toLocaleDateString(currentLang, opts).replace(',', ' |');
+                }
+                setInterval(updateLiveClock, 1000);
+                updateLiveClock();
+
+                function openSidebar() {
+                    dom.sidebarOverlay.classList.remove('hidden');
+                    // Quick timeout to allow display:block to apply before opacity transition
+                    setTimeout(() => {
+                        dom.sidebarOverlay.classList.remove('opacity-0');
+                        dom.saasSidebar.classList.remove('-translate-x-full');
+                    }, 10);
+                }
+
+                function closeSidebar() {
+                    dom.sidebarOverlay.classList.add('opacity-0');
+                    dom.saasSidebar.classList.add('-translate-x-full');
+                    setTimeout(() => {
+                        dom.sidebarOverlay.classList.add('hidden');
+                    }, 300);
+                }
+
+                if (dom.openSidebarBtn) dom.openSidebarBtn.addEventListener('click', openSidebar);
+                if (dom.closeSidebarBtn) dom.closeSidebarBtn.addEventListener('click', closeSidebar);
+                if (dom.sidebarOverlay) dom.sidebarOverlay.addEventListener('click', closeSidebar);
+
+                function loadData() {
                     const token = localStorage.getItem('token');
-                    fetch(`/api/members/${b.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
-                }));
-                // Only populate checkboxes if not in edit mode
-                if (!dom.addMemberForm.dataset.editId) {
-                    dom.memberStoresCheckboxes.innerHTML = appData.stores.map(s => `<label class="flex items-center gap-2"><input type="checkbox" value="${s.id}" ${s.id === appData.currentStoreId ? 'checked' : ''}>${s.name}</label>`).join('');
-                }
-            }
+                    const headers = {};
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            function editMember(id) {
-                const m = appData.members.find(x => x.id === parseInt(id));
-                if (!m) return;
-                dom.addMemberForm.dataset.editId = m.id;
-                document.getElementById('memberFormTitle').textContent = 'Edit Member';
-                document.getElementById('memberSubmitBtn').textContent = 'Update';
-                document.getElementById('memberCancelBtn').classList.remove('hidden');
-                document.getElementById('memberName').value = m.name;
-                document.getElementById('memberPhone').value = m.phone || '';
-                document.getElementById('memberEmail').value = m.email || '';
-                document.getElementById('memberEmploymentType').value = m.employmentType || 'casual';
-                dom.memberStoresCheckboxes.innerHTML = appData.stores.map(s => `<label class="flex items-center gap-2"><input type="checkbox" value="${s.id}" ${(m.storeIds || []).includes(s.id) ? 'checked' : ''}>${s.name}</label>`).join('');
-            }
-
-            function resetMemberForm() {
-                delete dom.addMemberForm.dataset.editId;
-                document.getElementById('memberFormTitle').textContent = 'Add Member';
-                document.getElementById('memberSubmitBtn').textContent = 'Add';
-                document.getElementById('memberCancelBtn').classList.add('hidden');
-                dom.addMemberForm.reset();
-                renderMembers();
-            }
-
-            function renderStoresList() {
-                dom.storesList.innerHTML = appData.stores.map(s => `<li class="bg-gray-800 p-2 rounded flex justify-between items-center"><span><b>${s.name}</b>: ${s.maxHours}h</span><div class="flex gap-2"><button class="edit-s text-blue-400 hover:text-blue-300" data-id="${s.id}"><i data-lucide="edit-2" class="w-4 h-4"></i></button><button class="del-s text-red-500 hover:text-red-400" data-id="${s.id}"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></li>`).join('');
-                lucide.createIcons();
-                dom.storesList.querySelectorAll('.edit-s').forEach(b => b.addEventListener('click', () => editStore(b.dataset.id)));
-                dom.storesList.querySelectorAll('.del-s').forEach(b => b.addEventListener('click', () => {
-                    if (!confirm('Are you sure you want to delete this store? This will also remove any assigned shifts!')) return;
-                    const token = localStorage.getItem('token');
-                    fetch(`/api/stores/${b.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
-                }));
-            }
-
-            function editStore(id) {
-                const s = appData.stores.find(x => x.id === parseInt(id));
-                if (!s) return;
-                dom.addStoreForm.dataset.editId = s.id;
-                document.getElementById('storeFormTitle').textContent = 'Edit Store';
-                document.getElementById('storeSubmitBtn').textContent = 'Update';
-                document.getElementById('storeCancelBtn').classList.remove('hidden');
-                document.getElementById('storeName').value = s.name;
-                document.getElementById('storeMaxHours').value = s.maxHours || '';
-            }
-
-            function resetStoreForm() {
-                delete dom.addStoreForm.dataset.editId;
-                document.getElementById('storeFormTitle').textContent = 'Add New Store';
-                document.getElementById('storeSubmitBtn').textContent = 'Add';
-                document.getElementById('storeCancelBtn').classList.add('hidden');
-                dom.addStoreForm.reset();
-            }
-
-            function updateAllViews() {
-                const nameSelect = dom.staffNameSelect; const cur = nameSelect.value;
-                const members = getCurrentStoreMembers();
-                if (members.length === 0) {
-                    nameSelect.innerHTML = '<option value="">No employees assigned to this store</option>';
-                } else {
-                    nameSelect.innerHTML = '<option value="">Select Employee</option>' + members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-                }
-                nameSelect.value = cur;
-                dom.employeeSelectForDownload.innerHTML = nameSelect.innerHTML;
-                dom.storeSelector.innerHTML = appData.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-                dom.storeSelector.value = appData.currentStoreId;
-                if (dom.editorStoreSelector) {
-                    dom.editorStoreSelector.innerHTML = dom.storeSelector.innerHTML;
-                    dom.editorStoreSelector.value = appData.currentStoreId;
+                    return fetch(`/api/data?_t=${Date.now()}`, { headers }).then(res => {
+                        if (res.status === 401 || res.status === 403) {
+                            logoutAdmin();
+                        }
+                        return res.json();
+                    }).then(data => {
+                        const existingStoreId = appData.currentStoreId;
+                        appData = { ...appData, ...data };
+                        // Preserve the user's currently selected store if possible
+                        if (existingStoreId && appData.stores.some(s => s.id === existingStoreId)) {
+                            appData.currentStoreId = existingStoreId;
+                        } else if (!appData.currentStoreId && appData.stores.length > 0) {
+                            appData.currentStoreId = appData.stores[0].id;
+                        }
+                        renderEngineRules(); updateAllViews();
+                    }).catch(e => console.error('Data load error:', e));
                 }
 
-                // Update Total Hours Label based on view
-                const lbl = document.getElementById('total-hours-label');
-                if (lbl) {
-                    const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
-                    lbl.textContent = `Total Hours (${count} Days)`;
+                const getCurrentStoreMembers = () => appData.members.filter(m => m.storeIds && m.storeIds.includes(appData.currentStoreId));
+                const getCurrentStoreShifts = () => appData.shifts.filter(s => s.storeId === appData.currentStoreId);
+
+                function showToast(msg, isErr = false) {
+                    dom.toastMessage.textContent = msg; dom.toast.classList.remove('bg-green-500', 'bg-red-500');
+                    dom.toast.classList.add(isErr ? 'bg-red-500' : 'bg-green-500');
+                    dom.toast.classList.remove('opacity-0', 'invisible'); setTimeout(() => dom.toast.classList.add('opacity-0', 'invisible'), 3000);
                 }
 
-                renderMembers(); renderStoresList(); renderWeeklyEditor(); updateCalendarView(); updateDashboard();
-            }
-
-            function updateCalendarView() {
-                const sDate = new Date(dom.weekStartDateInput.value + 'T00:00:00');
-                const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
-                const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
-
-                // Get today's string in Melbourne time to highlight "Today" accurately regardless of server UTC time
-                const parts = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-                const y = parts.find(p => p.type === 'year').value;
-                const m = parts.find(p => p.type === 'month').value;
-                const day = parts.find(p => p.type === 'day').value;
-                const todayStr = `${y}-${m}-${day}`;
-
-                // Conditionally shrink text and padding for the 14-day view to fit more on screen
-                const isFortnight = count === 14;
-                const cellPadding = isFortnight ? 'p-1 md:p-1.5' : 'p-2';
-                const headerTextSizes = isFortnight ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm';
-                const empNameColWidth = isFortnight ? 'min-w-[100px] text-xs' : 'min-w-[140px] text-sm';
-                const shiftTextSize = isFortnight ? 'text-[9px] md:text-[11px]' : 'text-xs';
-
-                let table = `<table id="schedule-table" class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;"><thead class="bg-gray-50"><tr><th class="sticky left-0 bg-gray-50 z-10 ${cellPadding} border-r ${empNameColWidth}">Employee</th>`;
-                for (let i = 0; i < count; i++) {
-                    const d = new Date(sDate); d.setDate(sDate.getDate() + i);
-                    const ds = d.toISOString().split('T')[0];
-                    const isToday = ds === todayStr;
-                    table += `<th class="${cellPadding} border-r text-center font-bold overflow-hidden ${headerTextSizes} ${isToday ? 'bg-orange-100 text-orange-600 border-t-4 border-t-orange-500' : 'text-gray-500'}">${d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })}${isToday ? ' <br><span class="text-[8px] uppercase font-black tracking-widest text-orange-500">Today</span>' : ''}</th>`;
+                function toggleModal(m) {
+                    if (m.classList.contains('hidden')) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); m.querySelector('.modal-content')?.classList.remove('scale-95'); }
+                    else { m.classList.add('opacity-0'); m.querySelector('.modal-content')?.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 300); }
                 }
-                table += '</tr></thead><tbody class="divide-y divide-gray-200">';
-                members.forEach(m => {
-                    const isSelected = dom.staffNameSelect.value === m.name;
-                    table += `<tr class="employee-row cursor-pointer transition-colors ${isSelected ? 'bg-orange-100 border-orange-400 border-2' : 'hover:bg-gray-50'}" data-row-name="${m.name}"><td class="sticky left-0 ${isSelected ? 'bg-orange-100' : 'bg-white'} z-10 ${cellPadding} border-r font-bold text-gray-900 cell-name truncate ${empNameColWidth}" data-name="${m.name}" title="${m.name}">${m.name}</td>`;
-                    for (let i = 0; i < count; i++) {
-                        const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = d.toISOString().split('T')[0];
-                        const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
-                        const isToday = ds === todayStr;
 
-                        let cellBg = isToday ? 'bg-orange-50/50' : 'bg-white';
-                        if (s) cellBg = isSelected ? 'bg-orange-200 border-orange-500 border' : (isToday ? 'bg-orange-100' : 'bg-orange-50');
+                function renderMembers() {
+                    // Update dropdown and pills sync if options exist
+                    if (dom.memberMgmtStoreFilter.options.length <= 1 && appData.stores.length > 0) {
+                        dom.memberMgmtStoreFilter.innerHTML = '<option value="all">All stores</option>' +
+                            appData.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
-                        table += `<td class="${cellPadding} border-r text-center shift-cell overflow-hidden ${cellBg} ${!s ? 'text-gray-300' : ''}" data-member-name="${m.name}" data-date="${ds}">${s ? `<div class="font-bold text-gray-900 ${shiftTextSize}">${s.startTime}-${s.endTime}</div>` : `<span class="text-[8px] md:text-[10px]">No shift</span>`}</td>`;
+                        dom.memberMgmtQuickPills.innerHTML = '<button class="store-pill active text-xs px-3 py-1 bg-orange-600 text-white rounded-full transition-colors" data-store-id="all">All</button>' +
+                            appData.stores.map(s => `<button class="store-pill text-xs px-3 py-1 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-full transition-colors" data-store-id="${s.id}">${s.name}</button>`).join('');
+
+                        // Attach pill click events
+                        dom.memberMgmtQuickPills.querySelectorAll('.store-pill').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                dom.memberMgmtStoreFilter.value = btn.dataset.storeId;
+                                dom.memberMgmtStoreFilter.dispatchEvent(new Event('change'));
+                            });
+                        });
                     }
-                    table += '</tr>';
-                });
-                table += '</tbody></table>'; dom.scheduleContainer.innerHTML = table;
-                dom.scheduleContainer.querySelectorAll('.employee-row').forEach(row => {
-                    row.addEventListener('click', (e) => {
-                        const cell = e.target.closest('.shift-cell');
-                        const dateCellClicked = cell ? cell.dataset.date : null;
 
-                        const name = row.dataset.rowName;
-                        if (dom.staffNameSelect.value !== name) {
-                            dom.staffNameSelect.value = name;
-                            renderWeeklyEditor();
-                            updateCalendarView();
-                            // Select the clicked cell
-                            setTimeout(() => {
-                                const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
-                                if (newCell) {
-                                    newCell.classList.add('selected-cell');
-                                    const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                                    if (correspondingRow) {
-                                        const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                        const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                        if (!cb.checked) {
-                                            cb.checked = true;
-                                            inputs.forEach(inp => inp.disabled = false);
-                                            if (!inputs[0].value) inputs[0].value = "09:00";
-                                            if (!inputs[1].value) inputs[1].value = "17:00";
-                                        }
-                                    }
-                                }
-                            }, 50);
-                        } else if (dateCellClicked) {
-                            // If same employee, toggle selection visual and checkbox
-                            if (cell) cell.classList.toggle('selected-cell');
+                    let ms = appData.members;
 
-                            const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                            if (correspondingRow) {
-                                const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                cb.checked = !cb.checked;
-                                inputs.forEach(inp => inp.disabled = !cb.checked);
-                                if (cb.checked) {
-                                    if (!inputs[0].value) inputs[0].value = "09:00";
-                                    if (!inputs[1].value) inputs[1].value = "17:00";
-                                }
-                            }
+                    // Keep the store selector logic independent of schedule context
+                    if (memberMgmtFilterStoreId !== 'all') {
+                        ms = ms.filter(m => m.storeIds && m.storeIds.includes(parseInt(memberMgmtFilterStoreId)));
+                    }
+
+                    if (memberMgmtSearchQuery) {
+                        const q = memberMgmtSearchQuery.toLowerCase();
+                        ms = ms.filter(m => (m.name && m.name.toLowerCase().includes(q)) ||
+                            (m.phone && m.phone.toLowerCase().includes(q)) ||
+                            (m.email && m.email.toLowerCase().includes(q)));
+                    }
+
+                    dom.membersList.innerHTML = ms.length ? '' : '<div class="text-sm text-gray-500 py-4 text-center">No members found</div>';
+
+                    ms.forEach(m => {
+                        const li = document.createElement('li'); li.className = 'bg-gray-800 p-3 rounded flex justify-between items-center';
+
+                        let badgesHtml = '';
+                        if (memberMgmtFilterStoreId === 'all' && m.storeIds && m.storeIds.length > 0) {
+                            badgesHtml = '<div class="flex flex-wrap gap-1 mt-1">';
+                            m.storeIds.forEach(sid => {
+                                const st = appData.stores.find(s => s.id === sid);
+                                if (st) badgesHtml += `<span class="bg-gray-900 border border-gray-700 text-[10px] text-gray-400 px-1.5 py-0.5 rounded">${st.name}</span>`;
+                            });
+                            badgesHtml += '</div>';
                         }
 
-                        dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        li.innerHTML = `<div class="flex flex-col"><span class="font-medium">${m.name}</span>${badgesHtml}</div><div class="flex gap-2"><button class="edit-m text-blue-400 hover:text-blue-300 p-2" data-id="${m.id}"><i data-lucide="edit-2" class="w-4 h-4"></i></button><button class="del-m text-red-500 hover:text-red-400 p-2" data-id="${m.id}"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
+                        dom.membersList.appendChild(li);
                     });
-                });
-            }
-
-            function updateDashboard() {
-                if (!isAdmin) return;
-                const start = new Date(dom.weekStartDateInput.value + 'T00:00:00');
-                const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
-                const shifts = getCurrentStoreShifts().filter(s => { const d = new Date(s.date + 'T00:00:00'); return d >= start && d < new Date(start).setDate(start.getDate() + count); });
-                const dailyHours = new Array(count).fill(0), dailyCost = new Array(count).fill(0);
-                shifts.forEach(s => {
-                    const idx = Math.floor((new Date(s.date + 'T00:00:00') - start) / 86400000);
-                    if (idx >= 0 && idx < count) {
-                        const memberInfo = appData.members.find(m => m.name === s.name);
-                        if (memberInfo && memberInfo.employmentType === 'full_time') return; // Skip full time employees from budget
-                        dailyHours[idx] += parseFloat(s.duration); dailyCost[idx] += calculateShiftPay(parseFloat(s.duration), s.date);
+                    lucide.createIcons();
+                    dom.membersList.querySelectorAll('.edit-m').forEach(b => b.addEventListener('click', () => editMember(b.dataset.id)));
+                    dom.membersList.querySelectorAll('.del-m').forEach(b => b.addEventListener('click', () => {
+                        if (!confirm('Are you sure you want to delete this member?')) return;
+                        const token = localStorage.getItem('token');
+                        fetch(`/api/members/${b.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
+                    }));
+                    // Only populate checkboxes if not in edit mode
+                    if (!dom.addMemberForm.dataset.editId) {
+                        dom.memberStoresCheckboxes.innerHTML = appData.stores.map(s => `<label class="flex items-center gap-2"><input type="checkbox" value="${s.id}" ${s.id === appData.currentStoreId ? 'checked' : ''}>${s.name}</label>`).join('');
                     }
-                });
-                if (hoursChart) hoursChart.destroy();
-                hoursChart = new Chart(dom.hoursChartCanvas, {
-                    type: 'bar', data: { labels: dailyHours.map((_, i) => i + 1), datasets: [{ label: 'Hours', data: dailyHours, backgroundColor: '#f97316' }, { label: 'Cost', data: dailyCost, type: 'line', borderColor: '#10b981', yAxisID: 'y1' }] },
-                    options: { scales: { y: { beginAtZero: true }, y1: { position: 'right' } } }
-                });
-                const totalH = dailyHours.reduce((a, b) => a + b, 0), max = (appData.stores.find(s => s.id === appData.currentStoreId)?.maxHours || 0) * (count / 7);
-                if (budgetChart) budgetChart.destroy();
-                budgetChart = new Chart(dom.budgetChartCanvas, { type: 'doughnut', data: { datasets: [{ data: [totalH, Math.max(0, max - totalH)], backgroundColor: [totalH > max ? '#ef4444' : '#f97316', '#1f2937'] }] } });
-                dom.budgetInfo.innerHTML = `<b>${totalH.toFixed(1)} / ${max.toFixed(1)}h</b>`;
-            }
-
-            function calculateShiftPay(h, ds) {
-                const s = appData.settings; const base = parseFloat(s.base_rate) || 35.0; const d = new Date(ds + 'T00:00:00').getDay();
-                if (d === 6) return h * base * (parseFloat(s.sat_mult) || 1.2);
-                if (d === 0) return h * base * (parseFloat(s.sun_mult) || 1.4);
-                return h * base;
-            }
-
-            function renderEngineRules() {
-                const s = appData.settings; dom.ruleBaseRate.value = s.base_rate || 35.0; dom.ruleSatMult.value = s.sat_mult || 1.2; dom.ruleSunMult.value = s.sun_mult || 1.4; dom.rulePhMult.value = s.ph_mult || 2.0;
-            }
-
-            function renderWeeklyEditor() {
-                const name = dom.staffNameSelect.value; dom.weeklyEditorContainer.innerHTML = '';
-                if (!name) {
-                    dom.weeklyEditorContainer.innerHTML = '<div class="text-gray-400 text-center py-8 italic border border-dashed border-gray-700 rounded-lg bg-black/50">Select an employee or click on cells to start</div>';
-                    return;
                 }
-                const start = new Date(dom.weekStartDateInput.value + 'T00:00:00'); const shifts = getCurrentStoreShifts();
-                const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
 
-                for (let i = 0; i < count; i++) {
-                    const d = new Date(start); d.setDate(start.getDate() + i); const ds = d.toISOString().split('T')[0];
-                    const s = shifts.find(sh => sh.name === name && sh.date === ds);
-                    const row = document.createElement('div'); row.className = 'flex items-center gap-2 p-1 bg-gray-800 rounded'; row.dataset.date = ds;
-                    row.innerHTML = `
+                function editMember(id) {
+                    const m = appData.members.find(x => x.id === parseInt(id));
+                    if (!m) return;
+                    dom.addMemberForm.dataset.editId = m.id;
+                    document.getElementById('memberFormTitle').textContent = 'Edit Member (Auto-saves)';
+                    document.getElementById('memberSubmitBtn').classList.add('hidden');
+                    document.getElementById('memberCancelBtn').textContent = 'Close';
+                    document.getElementById('memberCancelBtn').classList.remove('hidden');
+                    document.getElementById('memberName').value = m.name;
+                    document.getElementById('memberPhone').value = m.phone || '';
+                    document.getElementById('memberEmail').value = m.email || '';
+                    document.getElementById('memberEmploymentType').value = m.employmentType || 'casual';
+                    dom.memberStoresCheckboxes.innerHTML = appData.stores.map(s => `<label class="flex items-center gap-2"><input type="checkbox" value="${s.id}" ${(m.storeIds || []).includes(s.id) ? 'checked' : ''}>${s.name}</label>`).join('');
+                }
+
+                function resetMemberForm() {
+                    delete dom.addMemberForm.dataset.editId;
+                    document.getElementById('memberFormTitle').textContent = 'Add Member';
+                    document.getElementById('memberSubmitBtn').classList.remove('hidden');
+                    document.getElementById('memberSubmitBtn').textContent = 'Add';
+                    document.getElementById('memberCancelBtn').classList.add('hidden');
+                    document.getElementById('memberCancelBtn').textContent = 'Cancel';
+                    dom.addMemberForm.reset();
+                    renderMembers();
+                }
+
+                function renderStoresList() {
+                    dom.storesList.innerHTML = appData.stores.map(s => `<li class="bg-gray-800 p-2 rounded flex justify-between items-center"><span><b>${s.name}</b>: ${s.maxHours}h</span><div class="flex gap-2"><button class="edit-s text-blue-400 hover:text-blue-300" data-id="${s.id}"><i data-lucide="edit-2" class="w-4 h-4"></i></button><button class="del-s text-red-500 hover:text-red-400" data-id="${s.id}"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></li>`).join('');
+                    lucide.createIcons();
+                    dom.storesList.querySelectorAll('.edit-s').forEach(b => b.addEventListener('click', () => editStore(b.dataset.id)));
+                    dom.storesList.querySelectorAll('.del-s').forEach(b => b.addEventListener('click', () => {
+                        if (!confirm('Are you sure you want to delete this store? This will also remove any assigned shifts!')) return;
+                        const token = localStorage.getItem('token');
+                        fetch(`/api/stores/${b.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
+                    }));
+                }
+
+                function editStore(id) {
+                    const s = appData.stores.find(x => x.id === parseInt(id));
+                    if (!s) return;
+                    dom.addStoreForm.dataset.editId = s.id;
+                    document.getElementById('storeFormTitle').textContent = 'Edit Store (Auto-saves)';
+                    document.getElementById('storeSubmitBtn').classList.add('hidden');
+                    document.getElementById('storeCancelBtn').textContent = 'Close';
+                    document.getElementById('storeCancelBtn').classList.remove('hidden');
+                    document.getElementById('storeName').value = s.name;
+                    document.getElementById('storeMaxHours').value = s.maxHours || '';
+                }
+
+                function resetStoreForm() {
+                    delete dom.addStoreForm.dataset.editId;
+                    document.getElementById('storeFormTitle').textContent = 'Add New Store';
+                    document.getElementById('storeSubmitBtn').classList.remove('hidden');
+                    document.getElementById('storeSubmitBtn').textContent = 'Add';
+                    document.getElementById('storeCancelBtn').classList.add('hidden');
+                    document.getElementById('storeCancelBtn').textContent = 'Cancel';
+                    dom.addStoreForm.reset();
+                }
+
+                function updateAllViews() {
+                    const nameSelect = dom.staffNameSelect; const cur = nameSelect.value;
+                    const members = getCurrentStoreMembers();
+                    if (members.length === 0) {
+                        nameSelect.innerHTML = '<option value="">No employees assigned to this store</option>';
+                    } else {
+                        nameSelect.innerHTML = '<option value="">Select Employee</option>' + members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+                    }
+                    nameSelect.value = cur;
+                    dom.employeeSelectForDownload.innerHTML = nameSelect.innerHTML;
+                    dom.storeSelector.innerHTML = appData.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                    dom.storeSelector.value = appData.currentStoreId;
+                    if (dom.editorStoreSelector) {
+                        dom.editorStoreSelector.innerHTML = dom.storeSelector.innerHTML;
+                        dom.editorStoreSelector.value = appData.currentStoreId;
+                    }
+
+                    // Update Total Hours Label based on view
+                    const lbl = document.getElementById('total-hours-label');
+                    if (lbl) {
+                        const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
+                        lbl.textContent = `Total Hours (${count} Days)`;
+                    }
+
+                    renderMembers(); renderStoresList(); renderWeeklyEditor(); updateCalendarView(); updateDashboard();
+                }
+
+                function updateCalendarView() {
+                    const sDate = new Date(dom.weekStartDateInput.value + 'T00:00:00');
+                    const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
+                    const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
+                    const membersToRender = !appData.currentStoreId ? [{ name: '' }, { name: '' }, { name: '' }, { name: '' }, { name: '' }] : members;
+
+                    // Get today's string in Melbourne time to highlight "Today" accurately regardless of server UTC time
+                    const parts = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+                    const y = parts.find(p => p.type === 'year').value;
+                    const m = parts.find(p => p.type === 'month').value;
+                    const day = parts.find(p => p.type === 'day').value;
+                    const todayStr = `${y}-${m}-${day}`;
+
+                    // Conditionally shrink text and padding for the 14-day view to fit more on screen
+                    const isFortnight = count === 14;
+                    const cellPadding = isFortnight ? 'p-1 md:p-1.5' : 'p-2';
+                    const headerTextSizes = isFortnight ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm';
+                    const empNameColWidth = isFortnight ? 'min-w-[100px] text-xs' : 'min-w-[140px] text-sm';
+                    const shiftTextSize = isFortnight ? 'text-[9px] md:text-[11px]' : 'text-xs';
+
+                    let table = `<table id="schedule-table" class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;"><thead class="bg-gray-50"><tr><th class="sticky left-0 bg-gray-50 z-10 ${cellPadding} border-r ${empNameColWidth}">Employee</th>`;
+                    for (let i = 0; i < count; i++) {
+                        const d = new Date(sDate); d.setDate(sDate.getDate() + i);
+                        const ds = getLocalYMD(d);
+                        const isToday = ds === todayStr;
+                        table += `<th class="${cellPadding} border-r text-center font-bold overflow-hidden ${headerTextSizes} ${isToday ? 'bg-orange-100 text-orange-600 border-t-4 border-t-orange-500' : 'text-gray-500'}">${d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })}${isToday ? ' <br><span class="text-[8px] uppercase font-black tracking-widest text-orange-500">Today</span>' : ''}</th>`;
+                    }
+                    table += '</tr></thead><tbody class="divide-y divide-gray-200">';
+                    membersToRender.forEach(m => {
+                        const isSelected = dom.staffNameSelect.value === m.name;
+                        table += `<tr class="employee-row cursor-pointer transition-colors ${isSelected ? 'bg-orange-100 border-orange-400 border-2' : 'hover:bg-gray-50'}" data-row-name="${m.name}"><td class="sticky left-0 ${isSelected ? 'bg-orange-100' : 'bg-white'} z-10 ${cellPadding} border-r font-bold text-gray-900 cell-name truncate ${empNameColWidth}" data-name="${m.name}" title="${m.name}">${m.name}</td>`;
+                        for (let i = 0; i < count; i++) {
+                            const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
+                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const isToday = ds === todayStr;
+
+                            let cellBg = isToday ? 'bg-orange-50/50' : 'bg-white';
+                            if (s) cellBg = isSelected ? 'bg-orange-200 border-orange-500 border' : (isToday ? 'bg-orange-100' : 'bg-orange-50');
+
+                            table += `<td class="${cellPadding} border-r text-center shift-cell overflow-hidden ${cellBg} ${!s ? 'text-gray-300' : ''}" data-member-name="${m.name}" data-date="${ds}">${s ? `<div class="font-bold text-gray-900 ${shiftTextSize}">${s.startTime}-${s.endTime}</div>` : `<span class="text-[8px] md:text-[10px]">No shift</span>`}</td>`;
+                        }
+                        table += '</tr>';
+                    });
+                    table += '</tbody></table>';
+
+                    if (!appData.currentStoreId) {
+                        table += `
+                            <div class="absolute inset-0 z-20 backdrop-blur-md bg-white/50 flex flex-col items-center justify-center rounded-xl shadow-inner pointer-events-auto">
+                                <div class="bg-gray-900 border border-gray-700 p-8 rounded-2xl shadow-2xl text-center max-w-md mx-auto transform -translate-y-4">
+                                    <i data-lucide="store" class="w-16 h-16 text-orange-500 mx-auto mb-4"></i>
+                                    <h3 class="text-2xl font-bold text-white mb-2">Select a Store First</h3>
+                                    <p class="text-gray-400 text-base">To view the schedule and assignments, please choose a store from the dropdown menu at the top.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    dom.scheduleContainer.innerHTML = table;
+                    if (!appData.currentStoreId) lucide.createIcons({ root: dom.scheduleContainer });
+                    dom.scheduleContainer.querySelectorAll('.employee-row').forEach(row => {
+                        row.addEventListener('click', (e) => {
+                            const cell = e.target.closest('.shift-cell');
+                            const dateCellClicked = cell ? cell.dataset.date : null;
+
+                            const name = row.dataset.rowName;
+                            if (dom.staffNameSelect.value !== name) {
+                                dom.staffNameSelect.value = name;
+                                renderWeeklyEditor();
+                                updateCalendarView();
+                                // Select the clicked cell
+                                setTimeout(() => {
+                                    const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
+                                    if (newCell) {
+                                        newCell.classList.add('selected-cell');
+                                        const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                                        if (correspondingRow) {
+                                            const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                                            const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                                            if (!cb.checked) {
+                                                cb.checked = true;
+                                                inputs.forEach(inp => inp.disabled = false);
+                                                if (!inputs[0].value) inputs[0].value = "09:00";
+                                                if (!inputs[1].value) inputs[1].value = "17:00";
+                                            }
+                                        }
+                                    }
+                                }, 50);
+                            } else if (dateCellClicked) {
+                                // If same employee, toggle selection visual and checkbox
+                                if (cell) cell.classList.toggle('selected-cell');
+
+                                const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                                if (correspondingRow) {
+                                    const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                                    const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                                    cb.checked = !cb.checked;
+                                    inputs.forEach(inp => inp.disabled = !cb.checked);
+                                    if (cb.checked) {
+                                        if (!inputs[0].value) inputs[0].value = "09:00";
+                                        if (!inputs[1].value) inputs[1].value = "17:00";
+                                    }
+                                }
+                            }
+
+                            dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        });
+                    });
+                }
+
+                function updateDashboard() {
+                    // Dashboard was removed in the SaaS UI update
+                }
+
+                function calculateShiftPay(h, ds) {
+                    const s = appData.settings; const base = parseFloat(s.base_rate) || 35.0; const d = new Date(ds + 'T00:00:00').getDay();
+                    if (d === 6) return h * base * (parseFloat(s.sat_mult) || 1.2);
+                    if (d === 0) return h * base * (parseFloat(s.sun_mult) || 1.4);
+                    return h * base;
+                }
+
+                function renderEngineRules() {
+                    const s = appData.settings; dom.ruleBaseRate.value = s.base_rate || 35.0; dom.ruleSatMult.value = s.sat_mult || 1.2; dom.ruleSunMult.value = s.sun_mult || 1.4; dom.rulePhMult.value = s.ph_mult || 2.0;
+                }
+
+                function renderWeeklyEditor() {
+                    const name = dom.staffNameSelect.value; dom.weeklyEditorContainer.innerHTML = '';
+                    if (!name) {
+                        dom.weeklyEditorContainer.innerHTML = '<div class="text-gray-400 text-center py-8 italic border border-dashed border-gray-700 rounded-lg bg-black/50">Select an employee or click on cells to start</div>';
+                        document.getElementById('quick-fill-container').classList.add('hidden');
+                        return;
+                    }
+                    document.getElementById('quick-fill-container').classList.remove('hidden');
+
+                    const start = new Date(dom.weekStartDateInput.value + 'T00:00:00'); const shifts = getCurrentStoreShifts();
+                    const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
+
+                    for (let i = 0; i < count; i++) {
+                        const d = new Date(start); d.setDate(start.getDate() + i); const ds = getLocalYMD(d);
+                        const s = shifts.find(sh => sh.name === name && sh.date === ds);
+                        const row = document.createElement('div'); row.className = 'flex items-center gap-2 p-1 bg-gray-800 rounded'; row.dataset.date = ds;
+                        row.innerHTML = `
                         <input type="checkbox" ${s ? 'checked' : ''} class="w-4 h-4">
                         <span class="w-12 text-xs">${d.toLocaleDateString(currentLang, { weekday: 'short' })}</span>
                         <div class="relative flex items-center">
@@ -1045,480 +1106,601 @@
                             <input type="time" value="${s ? s.endTime : ''}" class="bg-black pl-6 pr-1 py-1 rounded text-xs w-[100px]" ${!s ? 'disabled' : ''}>
                         </div>
                     `;
-                    dom.weeklyEditorContainer.appendChild(row);
-                    const cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]');
-                    cb.addEventListener('change', () => { inputs.forEach(inp => inp.disabled = !cb.checked); updateWeeklyHours(); });
-                    inputs.forEach(inp => inp.addEventListener('input', updateWeeklyHours));
+                        dom.weeklyEditorContainer.appendChild(row);
+                        const cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]');
+                        cb.addEventListener('change', () => { inputs.forEach(inp => inp.disabled = !cb.checked); updateWeeklyHours(); });
+                        inputs.forEach(inp => inp.addEventListener('input', updateWeeklyHours));
+                    }
+                    updateWeeklyHours();
                 }
-                updateWeeklyHours();
-            }
 
-            function updateWeeklyHours() {
-                let total = 0;
-                let checkedCount = 0;
-                dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
-                    const cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]');
-                    if (cb.checked) {
-                        checkedCount++;
-                        if (inputs[0].value && inputs[1].value) {
-                            const diffHours = (new Date(`2000-01-01T${inputs[1].value}`) - new Date(`2000-01-01T${inputs[0].value}`)) / 3600000;
-                            if (diffHours > 0) {
-                                total += diffHours;
+                function updateWeeklyHours() {
+                    let total = 0;
+                    let checkedCount = 0;
+                    dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
+                        const cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]');
+                        if (cb.checked) {
+                            checkedCount++;
+                            if (inputs[0].value && inputs[1].value) {
+                                const diffHours = (new Date(`2000-01-01T${inputs[1].value}`) - new Date(`2000-01-01T${inputs[0].value}`)) / 3600000;
+                                if (diffHours > 0) {
+                                    total += diffHours;
+                                }
                             }
                         }
-                    }
-                });
-                dom.weeklyTotalHours.textContent = total.toFixed(1);
-
-                // Show/hide bulk apply container based on if any rows are selected
-                const bulkContainer = document.getElementById('bulk-apply-container');
-                if (bulkContainer) {
-                    if (checkedCount > 0) {
-                        bulkContainer.classList.remove('hidden');
-                    } else {
-                        bulkContainer.classList.add('hidden');
-                    }
-                }
-            }
-
-            async function saveWeekShifts() {
-                const name = dom.staffNameSelect.value; if (!name) return;
-                const repeatCount = parseInt(document.getElementById('repeatWeeksSelect')?.value) || 0;
-
-                const items = [], delIds = [], current = getCurrentStoreShifts().filter(s => s.name === name);
-                dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
-                    const ds = row.dataset.date, cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]'), existing = current.find(s => s.date === ds);
-                    if (cb.checked && inputs[0].value && inputs[1].value) {
-                        const dur = (new Date(`2000-01-01T${inputs[1].value}`) - new Date(`2000-01-01T${inputs[0].value}`)) / 3600000;
-                        if (dur > 0) {
-                            items.push({ id: existing ? existing.id : `new_${Date.now()}_0_${ds}`, name, date: ds, startTime: inputs[0].value, endTime: inputs[1].value, duration: dur.toFixed(2), storeId: appData.currentStoreId });
-
-                            // Generate future repeating shifts
-                            for (let w = 1; w <= repeatCount; w++) {
-                                let nextDate = new Date(ds + 'T00:00:00');
-                                nextDate.setDate(nextDate.getDate() + (w * 7));
-                                let nextDs = nextDate.toISOString().split('T')[0];
-                                let futureExisting = current.find(s => s.date === nextDs);
-                                items.push({ id: futureExisting ? futureExisting.id : `new_${Date.now()}_${w}_${ds}`, name, date: nextDs, startTime: inputs[0].value, endTime: inputs[1].value, duration: dur.toFixed(2), storeId: appData.currentStoreId });
-                            }
-                        }
-                    } else if (existing) delIds.push(existing.id);
-                });
-                const token = localStorage.getItem('token');
-                fetch('/api/shifts/week', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ saveShifts: items, deleteShifts: delIds }) }).then(() => {
-                    if (document.getElementById('repeatWeeksSelect')) document.getElementById('repeatWeeksSelect').value = "0";
-                    loadData();
-                });
-            }
-
-            function enterAdminMode() {
-                isAdmin = true; localStorage.setItem('isAdmin', 'true');
-                dom.loginBtn.classList.add('hidden'); dom.logoutBtn.classList.remove('hidden');
-                dom.adminControls.forEach(el => el.classList.remove('hidden'));
-                dom.employeeHeaderControls.forEach(el => el.classList.add('hidden'));
-                updateAllViews();
-            }
-
-            function logoutAdmin() {
-                isAdmin = false; localStorage.removeItem('token'); localStorage.removeItem('isAdmin');
-                dom.loginBtn.classList.remove('hidden'); dom.logoutBtn.classList.add('hidden');
-                dom.adminControls.forEach(el => el.classList.add('hidden'));
-                dom.employeeHeaderControls.forEach(el => el.classList.remove('hidden'));
-                updateAllViews();
-            }
-
-
-            function exportDataToPDF() {
-                const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
-                const sDate = new Date(dom.weekStartDateInput.value + 'T00:00:00');
-                const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
-                const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
-
-                let headRow = ['Employee'];
-                for (let i = 0; i < count; i++) { const d = new Date(sDate); d.setDate(sDate.getDate() + i); headRow.push(d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })); }
-
-                const body = members.map(m => {
-                    const row = [m.name];
-                    for (let i = 0; i < count; i++) {
-                        const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = d.toISOString().split('T')[0];
-                        const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
-                        row.push(s ? `${s.startTime}-${s.endTime}` : '');
-                    }
-                    return row;
-                });
-
-                doc.autoTable({ head: [headRow], body, theme: 'grid' });
-
-                const earn = members.map(m => {
-                    let cost = 0;
-                    shifts.filter(s => s.name === m.name).forEach(s => {
-                        const d = new Date(s.date + 'T00:00:00');
-                        if (d >= sDate && d < new Date(sDate).setDate(sDate.getDate() + count)) cost += calculateShiftPay(parseFloat(s.duration), s.date);
                     });
-                    return [m.name, m.employmentType === 'full_time' ? 'Salary' : '$' + (appData.settings?.base_rate || 33.19), '$' + cost.toFixed(2)];
+                    dom.weeklyTotalHours.textContent = total.toFixed(1);
+
+                    clearTimeout(shiftAutoSaveTimeout);
+                    shiftAutoSaveTimeout = setTimeout(() => {
+                        saveWeekShifts(true);
+                    }, 800);
+                }
+
+                let shiftAutoSaveTimeout;
+                async function saveWeekShifts(isAuto = false) {
+                    const name = dom.staffNameSelect.value; if (!name) return;
+                    const repeatCount = parseInt(document.getElementById('repeatWeeksSelect')?.value) || 0;
+
+                    const items = [], delIds = [], current = getCurrentStoreShifts().filter(s => s.name === name);
+                    dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
+                        const ds = row.dataset.date, cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]'), existing = current.find(s => s.date === ds);
+                        if (cb.checked && inputs[0].value && inputs[1].value) {
+                            const dur = (new Date(`2000-01-01T${inputs[1].value}`) - new Date(`2000-01-01T${inputs[0].value}`)) / 3600000;
+                            if (dur > 0) {
+                                items.push({ id: existing ? existing.id : `new_${Date.now()}_0_${ds}`, name, date: ds, startTime: inputs[0].value, endTime: inputs[1].value, duration: dur.toFixed(2), storeId: appData.currentStoreId });
+
+                                // Generate future repeating shifts
+                                for (let w = 1; w <= repeatCount; w++) {
+                                    let nextDate = new Date(ds + 'T00:00:00');
+                                    nextDate.setDate(nextDate.getDate() + (w * 7));
+                                    let nextDs = getLocalYMD(nextDate);
+                                    let futureExisting = current.find(s => s.date === nextDs);
+                                    items.push({ id: futureExisting ? futureExisting.id : `new_${Date.now()}_${w}_${ds}`, name, date: nextDs, startTime: inputs[0].value, endTime: inputs[1].value, duration: dur.toFixed(2), storeId: appData.currentStoreId });
+                                }
+                            }
+                        } else if (existing) delIds.push(existing.id);
+                    });
+                    const token = localStorage.getItem('token');
+                    fetch('/api/shifts/week', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ saveShifts: items, deleteShifts: delIds }) }).then(() => {
+                        if (!isAuto && document.getElementById('repeatWeeksSelect')) document.getElementById('repeatWeeksSelect').value = "0";
+                        fetch('/api/data').then(res => res.json()).then(data => {
+                            appData = { ...appData, ...data };
+                            if (!isAuto) renderWeeklyEditor();
+                            updateCalendarView();
+                            updateDashboard();
+                            if (isAuto && items.length > 0) showToast('Shifts saved auto');
+                        });
+                    });
+                }
+
+                function enterAdminMode() {
+                    isAdmin = true; localStorage.setItem('isAdmin', 'true');
+                    dom.loginBtn.classList.add('hidden'); dom.logoutBtn.classList.remove('hidden');
+                    dom.adminControls.forEach(el => el.classList.remove('hidden'));
+                    dom.employeeHeaderControls.forEach(el => el.classList.add('hidden'));
+                    updateAllViews();
+                }
+
+                function logoutAdmin() {
+                    isAdmin = false; localStorage.removeItem('token'); localStorage.removeItem('isAdmin');
+                    dom.loginBtn.classList.remove('hidden'); dom.logoutBtn.classList.add('hidden');
+                    dom.adminControls.forEach(el => el.classList.add('hidden'));
+                    dom.employeeHeaderControls.forEach(el => el.classList.remove('hidden'));
+                    updateAllViews();
+                }
+
+
+                function exportDataToPDF() {
+                    const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
+                    const sDate = new Date(dom.weekStartDateInput.value + 'T00:00:00');
+                    const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
+                    const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
+
+                    let headRow = ['Employee'];
+                    for (let i = 0; i < count; i++) { const d = new Date(sDate); d.setDate(sDate.getDate() + i); headRow.push(d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })); }
+
+                    const body = members.map(m => {
+                        const row = [m.name];
+                        for (let i = 0; i < count; i++) {
+                            const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
+                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            row.push(s ? `${s.startTime}-${s.endTime}` : '');
+                        }
+                        return row;
+                    });
+
+                    doc.autoTable({ head: [headRow], body, theme: 'grid' });
+
+                    const earn = members.map(m => {
+                        let cost = 0;
+                        shifts.filter(s => s.name === m.name).forEach(s => {
+                            const d = new Date(s.date + 'T00:00:00');
+                            if (d >= sDate && d < new Date(sDate).setDate(sDate.getDate() + count)) cost += calculateShiftPay(parseFloat(s.duration), s.date);
+                        });
+                        return [m.name, m.employmentType === 'full_time' ? 'Salary' : '$' + (appData.settings?.base_rate || 33.19), '$' + cost.toFixed(2)];
+                    });
+                    doc.autoTable({ startY: doc.lastAutoTable.finalY + 10, head: [['Name', 'Rate', 'Total']], body: earn });
+                    doc.save('roster.pdf');
+                }
+
+                // Events
+                dom.loginBtn.addEventListener('click', () => toggleModal(dom.loginModal)); dom.closeLoginModalBtn.addEventListener('click', () => toggleModal(dom.loginModal));
+                dom.loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: dom.loginForm.username.value, password: dom.loginForm.password.value }) });
+                    if (res.ok) { const d = await res.json(); localStorage.setItem('token', d.token); enterAdminMode(); toggleModal(dom.loginModal); }
                 });
-                doc.autoTable({ startY: doc.lastAutoTable.finalY + 10, head: [['Name', 'Rate', 'Total']], body: earn });
-                doc.save('roster.pdf');
-            }
-
-            // Events
-            dom.loginBtn.addEventListener('click', () => toggleModal(dom.loginModal)); dom.closeLoginModalBtn.addEventListener('click', () => toggleModal(dom.loginModal));
-            dom.loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: dom.loginForm.username.value, password: dom.loginForm.password.value }) });
-                if (res.ok) { const d = await res.json(); localStorage.setItem('token', d.token); enterAdminMode(); toggleModal(dom.loginModal); }
-            });
-            dom.logoutBtn.addEventListener('click', logoutAdmin);
-            dom.openEngineRulesBtn.addEventListener('click', () => toggleModal(dom.engineRulesModal)); dom.closeEngineRulesModalBtn.addEventListener('click', () => toggleModal(dom.engineRulesModal));
-            dom.engineRulesForm.addEventListener('submit', async (e) => {
-                e.preventDefault(); const s = { base_rate: dom.ruleBaseRate.value, sat_mult: dom.ruleSatMult.value, sun_mult: dom.ruleSunMult.value, ph_mult: dom.rulePhMult.value };
-                const token = localStorage.getItem('token');
-                await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(s) });
-                loadData(); toggleModal(dom.engineRulesModal);
-            });
-            dom.openStoresBtn.addEventListener('click', () => toggleModal(dom.storesModal)); dom.closeStoresModalBtn.addEventListener('click', () => { resetStoreForm(); toggleModal(dom.storesModal); });
-            dom.openMembersBtn.addEventListener('click', () => toggleModal(dom.membersModal)); dom.closeMembersModalBtn.addEventListener('click', () => { resetMemberForm(); toggleModal(dom.membersModal); });
-            dom.exportPdfBtn.addEventListener('click', exportDataToPDF);
-            if (dom.mainExportBtn) dom.mainExportBtn.addEventListener('click', () => toggleModal(dom.exportModal));
-            if (dom.closeExportModalBtn) dom.closeExportModalBtn.addEventListener('click', () => toggleModal(dom.exportModal));
-
-            // Admin Tools Accordion
-            if (dom.adminToolsToggleBtn) {
-                dom.adminToolsToggleBtn.addEventListener('click', () => {
-                    const isOpen = dom.adminToolsContent.classList.contains('max-h-[1000px]');
-                    if (isOpen) {
-                        dom.adminToolsContent.classList.remove('max-h-[1000px]', 'opacity-100');
-                        dom.adminToolsContent.classList.add('max-h-0', 'opacity-0');
-                        dom.adminToolsToggleIcon.style.transform = 'rotate(0deg)';
-                    } else {
-                        dom.adminToolsContent.classList.remove('max-h-0', 'opacity-0');
-                        dom.adminToolsContent.classList.add('max-h-[1000px]', 'opacity-100');
-                        dom.adminToolsToggleIcon.style.transform = 'rotate(180deg)';
-                    }
+                dom.logoutBtn.addEventListener('click', logoutAdmin);
+                dom.openEngineRulesBtn.addEventListener('click', () => toggleModal(dom.engineRulesModal)); dom.closeEngineRulesModalBtn.addEventListener('click', () => toggleModal(dom.engineRulesModal));
+                dom.engineRulesForm.addEventListener('submit', async (e) => {
+                    e.preventDefault(); const s = { base_rate: dom.ruleBaseRate.value, sat_mult: dom.ruleSatMult.value, sun_mult: dom.ruleSunMult.value, ph_mult: dom.rulePhMult.value };
+                    const token = localStorage.getItem('token');
+                    await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(s) });
+                    loadData(); toggleModal(dom.engineRulesModal);
                 });
-            }
+                dom.openStoresBtn.addEventListener('click', () => toggleModal(dom.storesModal)); dom.closeStoresModalBtn.addEventListener('click', () => { resetStoreForm(); toggleModal(dom.storesModal); });
+                dom.openMembersBtn.addEventListener('click', () => {
+                    memberMgmtFilterStoreId = 'all';
+                    memberMgmtSearchQuery = '';
+                    if (dom.memberSearchInput) dom.memberSearchInput.value = '';
+                    if (dom.memberMgmtStoreFilter) dom.memberMgmtStoreFilter.value = 'all';
+                    toggleModal(dom.membersModal);
+                    renderMembers();
+                });
+                dom.closeMembersModalBtn.addEventListener('click', () => { resetMemberForm(); toggleModal(dom.membersModal); });
 
-            // Bulk Apply Hours logic
-            const applyBulkBtn = document.getElementById('applyBulkHoursBtn');
-            const bulkStart = document.getElementById('bulk-start-time');
-            const bulkEnd = document.getElementById('bulk-end-time');
+                if (dom.memberSearchInput) {
+                    dom.memberSearchInput.addEventListener('input', (e) => {
+                        memberMgmtSearchQuery = e.target.value;
+                        renderMembers();
+                    });
+                }
+                if (dom.memberMgmtStoreFilter) {
+                    dom.memberMgmtStoreFilter.addEventListener('change', (e) => {
+                        memberMgmtFilterStoreId = e.target.value;
+                        // Ensure pills sync visual state
+                        dom.memberMgmtQuickPills.querySelectorAll('.store-pill').forEach(btn => {
+                            if (btn.dataset.storeId === memberMgmtFilterStoreId) {
+                                btn.classList.remove('bg-gray-800', 'text-gray-300', 'hover:bg-gray-700');
+                                btn.classList.add('bg-orange-600', 'text-white', 'active');
+                            } else {
+                                btn.classList.add('bg-gray-800', 'text-gray-300', 'hover:bg-gray-700');
+                                btn.classList.remove('bg-orange-600', 'text-white', 'active');
+                            }
+                        });
+                        renderMembers();
+                    });
+                }
+                if (dom.sidebarExportBtn) {
+                    dom.sidebarExportBtn.addEventListener('click', () => {
+                        closeSidebar();
+                        // Instead of showing the export modal, directly generate CSV as requested by SaaS restructure
+                        generateRosterCSV();
+                    });
+                }
 
-            if (applyBulkBtn && bulkStart && bulkEnd) {
-                applyBulkBtn.addEventListener('click', () => {
-                    const startVal = bulkStart.value;
-                    const endVal = bulkEnd.value;
-                    if (!startVal || !endVal) {
-                        alert('Please select both a start and end time for Bulk Apply.');
+                if (dom.sidebarPdfBtn) {
+                    dom.sidebarPdfBtn.addEventListener('click', () => {
+                        closeSidebar();
+                        exportDataToPDF();
+                    });
+                }
+
+                if (dom.sidebarSyncBtn) {
+                    dom.sidebarSyncBtn.addEventListener('click', () => {
+                        closeSidebar();
+                        // If they pick sync, show the calendar modal format
+                        toggleModal(dom.exportModal);
+                    });
+                }
+
+                if (dom.closeExportModalBtn) dom.closeExportModalBtn.addEventListener('click', () => toggleModal(dom.exportModal));
+
+                // Route old admin buttons to close sidebar as well
+                if (dom.openEngineRulesBtn) dom.openEngineRulesBtn.addEventListener('click', closeSidebar);
+                if (dom.openStoresBtn) dom.openStoresBtn.addEventListener('click', closeSidebar);
+                if (dom.openMembersBtn) dom.openMembersBtn.addEventListener('click', closeSidebar);
+
+                // Quick Fill logic
+                const applyQuickFillBtn = document.getElementById('quickFillBtn');
+                const quickFillStart = document.getElementById('quickFillStart');
+                const quickFillEnd = document.getElementById('quickFillEnd');
+
+                if (applyQuickFillBtn && quickFillStart && quickFillEnd) {
+                    applyQuickFillBtn.addEventListener('click', () => {
+                        const startVal = quickFillStart.value;
+                        const endVal = quickFillEnd.value;
+                        if (!startVal || !endVal) {
+                            alert('Please select both a start and end time.');
+                            return;
+                        }
+
+                        dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
+                            const cb = row.querySelector('input[type="checkbox"]');
+                            const inputs = row.querySelectorAll('input[type="time"]');
+                            // Apply to ALL days, check them automatically
+                            cb.checked = true;
+                            inputs.forEach(inp => inp.disabled = false);
+                            inputs[0].value = startVal;
+                            inputs[1].value = endVal;
+                        });
+
+                        updateWeeklyHours();
+                        saveWeekShifts(true); // Save automatically for seamless experience
+                    });
+                }
+
+                // -------------------------------------------------------------
+                // Calendar Integration logic for ICS / Google
+                // -------------------------------------------------------------
+                function generateCalendarEvents(format) {
+                    const name = dom.employeeSelectForDownload.value;
+                    if (!name) return alert('Select an employee first');
+
+                    const storeObj = appData.stores.find(s => s.id === appData.currentStoreId);
+                    const storeName = storeObj ? storeObj.name : 'Store';
+
+                    const memberShifts = appData.shifts.filter(s => s.memberId === parseInt(appData.members.find(m => m.name === name)?.id) && s.storeId === appData.currentStoreId);
+                    if (memberShifts.length === 0) return alert('No shifts found for this employee in the current store.');
+
+                    // Filter by visible week logic (basic approximation)
+                    const startStr = dom.weekStartDateInput.value;
+                    if (!startStr) return;
+
+                    if (format === 'google') {
+                        // Google Calendar only takes 1 event via URL params. Let's use the FIRST upcoming shift.
+                        // Or compile a single multi-day event - but for retail, it's better to just provide the first shift.
+                        // Actually, let's open multiple tabs if there's less than 5 shifts, but popup blockers block this.
+                        // Best way: Google cal link for the earliest shift in the view block.
+                        memberShifts.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        const nextShift = memberShifts[0];
+                        const sDate = new Date(`${nextShift.date}T${nextShift.startTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
+                        const eDate = new Date(`${nextShift.date}T${nextShift.endTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
+
+                        const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Shift at ${encodeURIComponent(storeName)}&dates=${sDate}/${eDate}&details=Employee: ${encodeURIComponent(name)}%0AStore: ${encodeURIComponent(storeName)}&location=${encodeURIComponent(storeName)}`;
+                        window.open(gcalUrl, '_blank');
                         return;
                     }
 
-                    dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
-                        const cb = row.querySelector('input[type="checkbox"]');
-                        const inputs = row.querySelectorAll('input[type="time"]');
-                        if (cb.checked) {
-                            inputs[0].value = startVal;
-                            inputs[1].value = endVal;
+                    if (format === 'ics') {
+                        let ics = "BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//RosterManager//EN\\n";
+                        memberShifts.forEach(s => {
+                            const sDate = new Date(`${s.date}T${s.startTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
+                            const eDate = new Date(`${s.date}T${s.endTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
+                            ics += "BEGIN:VEVENT\\n";
+                            ics += `UID:${s.id}-${Date.now()}@rostermanager\\n`;
+                            ics += `DTSTAMP:${sDate}\\n`;
+                            ics += `DTSTART:${sDate}\\n`;
+                            ics += `DTEND:${eDate}\\n`;
+                            ics += `SUMMARY:Shift at ${storeName}\\n`;
+                            ics += `DESCRIPTION:Shift for ${name}\\n`;
+                            ics += `LOCATION:${storeName}\\n`;
+                            ics += "END:VEVENT\\n";
+                        });
+                        ics += "END:VCALENDAR";
+
+                        const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `roster_${name.replace(/\\s+/g, '_')}.ics`;
+                        link.click();
+                    }
+                }
+
+                if (dom.downloadPersonalBtn) dom.downloadPersonalBtn.addEventListener('click', () => generateCalendarEvents('ics'));
+                if (dom.addToGoogleCalBtn) dom.addToGoogleCalBtn.addEventListener('click', () => generateCalendarEvents('google'));
+
+                dom.storeSelector.addEventListener('change', () => { appData.currentStoreId = parseInt(dom.storeSelector.value); updateAllViews(); });
+                if (dom.editorStoreSelector) dom.editorStoreSelector.addEventListener('change', () => { appData.currentStoreId = parseInt(dom.editorStoreSelector.value); updateAllViews(); });
+                dom.staffNameSelect.addEventListener('change', () => { renderWeeklyEditor(); updateCalendarView(); });
+                dom.weekStartDateInput.addEventListener('change', updateAllViews);
+                dom.viewSelectorButtons = document.querySelectorAll('.view-btn');
+                dom.viewSelectorButtons.forEach(b => b.addEventListener('click', () => {
+                    currentView = b.dataset.view;
+                    dom.viewSelectorButtons.forEach(x => {
+                        x.classList.remove('active', 'bg-orange-500', 'text-white', 'font-bold');
+                        x.classList.add('text-gray-300', 'hover:bg-gray-800', 'hover:bg-gray-700'); // Add both hovers back safely
+                        if (x.dataset.view === currentView) {
+                            x.classList.add('active', 'bg-orange-500', 'text-white', 'font-bold');
+                            x.classList.remove('text-gray-300', 'hover:bg-gray-800', 'hover:bg-gray-700');
                         }
                     });
+                    updateAllViews();
+                }));
 
-                    updateWeeklyHours();
-                });
-            }
 
-            // -------------------------------------------------------------
-            // Calendar Integration logic for ICS / Google
-            // -------------------------------------------------------------
-            function generateCalendarEvents(format) {
-                const name = dom.employeeSelectForDownload.value;
-                if (!name) return alert('Select an employee first');
 
-                const storeObj = appData.stores.find(s => s.id === appData.currentStoreId);
-                const storeName = storeObj ? storeObj.name : 'Store';
+                let storeAutoSaveTimeout;
 
-                const memberShifts = appData.shifts.filter(s => s.memberId === parseInt(appData.members.find(m => m.name === name)?.id) && s.storeId === appData.currentStoreId);
-                if (memberShifts.length === 0) return alert('No shifts found for this employee in the current store.');
+                async function autoSaveStore() {
+                    const id = dom.addStoreForm.dataset.editId;
+                    if (!id) return; // Only auto-save in edit mode
 
-                // Filter by visible week logic (basic approximation)
-                const startStr = dom.weekStartDateInput.value;
-                if (!startStr) return;
+                    const nameEl = document.getElementById('storeName');
+                    const maxHoursEl = document.getElementById('storeMaxHours');
+                    if (!nameEl.value) return;
 
-                if (format === 'google') {
-                    // Google Calendar only takes 1 event via URL params. Let's use the FIRST upcoming shift.
-                    // Or compile a single multi-day event - but for retail, it's better to just provide the first shift.
-                    // Actually, let's open multiple tabs if there's less than 5 shifts, but popup blockers block this.
-                    // Best way: Google cal link for the earliest shift in the view block.
-                    memberShifts.sort((a, b) => new Date(a.date) - new Date(b.date));
-                    const nextShift = memberShifts[0];
-                    const sDate = new Date(`${nextShift.date}T${nextShift.startTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
-                    const eDate = new Date(`${nextShift.date}T${nextShift.endTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
-
-                    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Shift at ${encodeURIComponent(storeName)}&dates=${sDate}/${eDate}&details=Employee: ${encodeURIComponent(name)}%0AStore: ${encodeURIComponent(storeName)}&location=${encodeURIComponent(storeName)}`;
-                    window.open(gcalUrl, '_blank');
-                    return;
-                }
-
-                if (format === 'ics') {
-                    let ics = "BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//RosterManager//EN\\n";
-                    memberShifts.forEach(s => {
-                        const sDate = new Date(`${s.date}T${s.startTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
-                        const eDate = new Date(`${s.date}T${s.endTime}`).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z/, 'Z');
-                        ics += "BEGIN:VEVENT\\n";
-                        ics += `UID:${s.id}-${Date.now()}@rostermanager\\n`;
-                        ics += `DTSTAMP:${sDate}\\n`;
-                        ics += `DTSTART:${sDate}\\n`;
-                        ics += `DTEND:${eDate}\\n`;
-                        ics += `SUMMARY:Shift at ${storeName}\\n`;
-                        ics += `DESCRIPTION:Shift for ${name}\\n`;
-                        ics += `LOCATION:${storeName}\\n`;
-                        ics += "END:VEVENT\\n";
-                    });
-                    ics += "END:VCALENDAR";
-
-                    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `roster_${name.replace(/\\s+/g, '_')}.ics`;
-                    link.click();
-                }
-            }
-
-            if (dom.downloadPersonalBtn) dom.downloadPersonalBtn.addEventListener('click', () => generateCalendarEvents('ics'));
-            if (dom.addToGoogleCalBtn) dom.addToGoogleCalBtn.addEventListener('click', () => generateCalendarEvents('google'));
-
-            dom.storeSelector.addEventListener('change', () => { appData.currentStoreId = parseInt(dom.storeSelector.value); updateAllViews(); });
-            if (dom.editorStoreSelector) dom.editorStoreSelector.addEventListener('change', () => { appData.currentStoreId = parseInt(dom.editorStoreSelector.value); updateAllViews(); });
-            dom.staffNameSelect.addEventListener('change', () => { renderWeeklyEditor(); updateCalendarView(); });
-            dom.weekStartDateInput.addEventListener('change', updateAllViews);
-            dom.viewSelectorButtons = document.querySelectorAll('.view-btn');
-            dom.viewSelectorButtons.forEach(b => b.addEventListener('click', () => {
-                currentView = b.dataset.view;
-                dom.viewSelectorButtons.forEach(x => {
-                    x.classList.remove('active', 'bg-orange-500', 'text-white', 'font-bold');
-                    x.classList.add('text-gray-300', 'hover:bg-gray-800', 'hover:bg-gray-700'); // Add both hovers back safely
-                    if (x.dataset.view === currentView) {
-                        x.classList.add('active', 'bg-orange-500', 'text-white', 'font-bold');
-                        x.classList.remove('text-gray-300', 'hover:bg-gray-800', 'hover:bg-gray-700');
-                    }
-                });
-                updateAllViews();
-            }));
-            dom.saveWeekBtn.addEventListener('click', (e) => { e.preventDefault(); saveWeekShifts(); });
-            if (dom.clearWeekBtn) dom.clearWeekBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const name = dom.staffNameSelect.value;
-                if (!name) return;
-                if (!confirm(`Are you sure you want to CLEAR all displayed shifts for ${name}? This action cannot be undone.`)) return;
-
-                const delIds = [];
-                dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
-                    const ds = row.dataset.date;
-                    const existing = getCurrentStoreShifts().filter(s => s.name === name).find(s => s.date === ds);
-                    if (existing) delIds.push(existing.id);
-                });
-
-                if (delIds.length > 0) {
+                    const body = JSON.stringify({ name: nameEl.value, maxHours: maxHoursEl.value });
                     const token = localStorage.getItem('token');
-                    await fetch('/api/shifts/week', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ saveShifts: [], deleteShifts: delIds }) });
-                    loadData();
-                }
-            });
+                    const url = `/api/stores/${id}`;
+                    const method = 'PUT';
 
-            if (dom.dashboardToggleBtn) {
-                dom.dashboardToggleBtn.addEventListener('click', () => {
-                    const isCollapsed = dom.dashboardContent.classList.contains('max-h-0');
-                    if (isCollapsed) {
-                        dom.dashboardContent.classList.remove('max-h-0', 'opacity-0');
-                        dom.dashboardContent.classList.add('max-h-[1000px]', 'opacity-100');
-                        dom.dashboardToggleIcon.style.transform = 'rotate(0deg)';
-                    } else {
-                        dom.dashboardContent.classList.remove('max-h-[1000px]', 'opacity-100');
-                        dom.dashboardContent.classList.add('max-h-0', 'opacity-0');
-                        dom.dashboardToggleIcon.style.transform = 'rotate(180deg)';
-                    }
-                });
-            }
+                    try {
+                        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body });
+                        if (res.ok) {
+                            showToast('Store auto-saved');
+                            // Refresh data in background without interrupting user
+                            fetch(`/api/data?_t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()).then(data => {
+                                const existingStoreId = appData.currentStoreId;
+                                appData = { ...appData, ...data };
+                                if (existingStoreId && appData.stores.some(s => s.id === existingStoreId)) {
+                                    appData.currentStoreId = existingStoreId;
+                                }
 
-            dom.addStoreForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const id = dom.addStoreForm.dataset.editId;
-                const body = JSON.stringify({ name: document.getElementById('storeName').value, maxHours: document.getElementById('storeMaxHours').value });
-                const token = localStorage.getItem('token');
-                const url = id ? `/api/stores/${id}` : '/api/stores';
-                const method = id ? 'PUT' : 'POST';
-                await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body });
-                resetStoreForm();
-                loadData();
-            });
-            document.getElementById('storeCancelBtn').addEventListener('click', resetStoreForm);
+                                // Manually update the text of this specific store in the list to avoid stealing focus
+                                const listItems = dom.storesList.querySelectorAll('li');
+                                const editedStore = appData.stores.find(s => s.id === parseInt(id));
+                                if (editedStore) {
+                                    listItems.forEach(li => {
+                                        const editBtn = li.querySelector('.edit-s');
+                                        if (editBtn && editBtn.dataset.id === id) {
+                                            li.querySelector('span').innerHTML = `<b>${editedStore.name}</b>: ${editedStore.maxHours}h`;
+                                        }
+                                    });
+                                }
 
-            dom.addMemberForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const id = dom.addMemberForm.dataset.editId;
-                const cbs = Array.from(dom.memberStoresCheckboxes.querySelectorAll('input:checked'));
-                const storeIds = cbs.map(cb => parseInt(cb.value));
-                if (storeIds.length === 0) return alert('Select at least one store');
-                const body = JSON.stringify({
-                    name: document.getElementById('memberName').value,
-                    phone: document.getElementById('memberPhone').value,
-                    email: document.getElementById('memberEmail').value,
-                    employmentType: document.getElementById('memberEmploymentType').value,
-                    storeIds
-                });
-                const token = localStorage.getItem('token');
-                const url = id ? `/api/members/${id}` : '/api/members';
-                const method = id ? 'PUT' : 'POST';
-                await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body });
-                resetMemberForm();
-                loadData();
-            });
-            document.getElementById('memberCancelBtn').addEventListener('click', resetMemberForm);
-
-            if (!dom.weekStartDateInput.value) {
-                const today = new Date();
-                dom.weekStartDateInput.value = today.toISOString().split('T')[0];
-            }
-
-            // --- PayPal Integration Logic ---
-            async function initPayPal() {
-                try {
-                    const res = await fetch('/api/config/public');
-                    if (!res.ok) return;
-                    const config = await res.json();
-                    // Setup standard Donate button to alert if SDK fails
-                    if (dom.supportDonateBtn) {
-                        dom.supportDonateBtn.addEventListener('click', () => {
-                            alert(`Thanks for considering a donation! Please PayPal to: ${config.paypalBusinessEmail}`);
-                        });
-                    }
-
-                    // We will just use standard simple checkout for donations as subscriptions need a pre-made Plan ID on the developer dashboard
-                    const script = document.createElement('script');
-                    script.src = `https://www.paypal.com/sdk/js?client-id=ARcSKHeuTjuze8ykv6zU_RXhms_cneCxaLQuwlWznw_AtGF7RSDSBLAhPCfGGrqTw-Hn8xalzt7e0O5n&currency=${config.supportCurrency}`;
-                    script.addEventListener('load', () => {
-                        document.getElementById('standard-support-buttons').classList.add('hidden');
-                        paypal.Buttons({
-                            style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'paypal' },
-                            createOrder: function (data, actions) {
-                                return actions.order.create({
-                                    purchase_units: [{
-                                        amount: { value: '5.00' },
-                                        description: 'Donation to Roster Manager ($5)'
-                                    }]
-                                });
-                            },
-                            onApprove: function (data, actions) {
-                                return actions.order.capture().then(function (details) {
-                                    alert('Thank you for your generous donation, ' + details.payer.name.given_name + '!');
-                                });
-                            }
-                        }).render('#paypal-button-container');
-                    });
-                    document.body.appendChild(script);
-                } catch (e) {
-                    console.error("PayPal Init Error", e);
-                }
-            }
-            initPayPal();
-
-            // --- Guided Tour Logic ---
-            const startTourBtn = document.getElementById('startTourBtn');
-            if (startTourBtn) {
-                startTourBtn.addEventListener('click', () => {
-                    const tour = introJs();
-
-                    // Base steps applicable to both views
-                    const steps = [
-                        {
-                            title: 'Welcome!',
-                            intro: 'Welcome to Roster Manager! Let\'s take a quick tour to show you how to navigate the system.'
-                        },
-                        {
-                            element: document.querySelector('#roster-filters'),
-                            title: 'Filters',
-                            intro: 'Use these filters to select which store to view and pick the starting date for your schedule.',
-                            position: 'bottom'
-                        },
-                        {
-                            element: document.querySelector('.view-controls'),
-                            title: 'View Options',
-                            intro: 'Switch between seeing the whole Week, or a Fortnight (14 days) at a time.',
-                            position: 'bottom'
-                        },
-                        {
-                            element: document.querySelector('#schedule-container'),
-                            title: 'The Schedule Grid',
-                            intro: 'Here you can see everyone\'s shifts. <br><br><b>Tip:</b> Click on a schedule cell or employee name to quickly select them for editing below!',
-                            position: 'top'
+                                updateDashboard();
+                            });
+                        } else {
+                            const errTxt = await res.text();
+                            showToast(`Server Error ${res.status}: ${errTxt}`, true);
+                            console.error('Store AutoSave Error:', res.status, errTxt);
                         }
-                    ];
-
-                    // Added steps only if in Admin mode
-                    if (isAdmin) {
-                        steps.push({
-                            element: document.querySelector('#admin-tools-card'),
-                            title: 'Admin Controls',
-                            intro: 'As an administrator, you can manage Rules, Stores, and Members from this menu.',
-                            position: 'bottom'
-                        });
-                        steps.push({
-                            element: document.querySelector('#dashboard'),
-                            title: 'Cost Dashboard',
-                            intro: 'Watch real-time graphs showing your hour usage and budget allocation.',
-                            position: 'top'
-                        });
-                        steps.push({
-                            element: document.querySelector('#shift-editor'),
-                            title: 'Shift Editor',
-                            intro: 'Use this panel to specify exact times for an employee. Select an employee, check the days they work, enter times, and hit Save Period.',
-                            position: 'top'
-                        });
-                    } else {
-                        steps.push({
-                            element: document.querySelector('#mainExportBtn'),
-                            title: 'Employee Actions',
-                            intro: 'Export your personal roster right here to save to your calendar.',
-                            position: 'bottom'
-                        });
+                    } catch (err) {
+                        showToast(`Network Error: ${err.message}`, true);
+                        console.error('Store AutoSave Exception:', err);
                     }
+                }
 
-                    tour.setOptions({
-                        steps: steps,
-                        showProgress: true,
-                        showBullets: true,
-                        exitOnOverlayClick: true,
-                        disableInteraction: true,
-                        keyboardNavigation: true
+                dom.addStoreForm.addEventListener('change', () => {
+                    if (dom.addStoreForm.dataset.editId) {
+                        clearTimeout(storeAutoSaveTimeout);
+                        storeAutoSaveTimeout = setTimeout(autoSaveStore, 400);
+                    }
+                });
+
+                dom.addStoreForm.addEventListener('input', () => {
+                    if (dom.addStoreForm.dataset.editId) {
+                        clearTimeout(storeAutoSaveTimeout);
+                        storeAutoSaveTimeout = setTimeout(autoSaveStore, 800);
+                    }
+                });
+
+                dom.addStoreForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const id = dom.addStoreForm.dataset.editId;
+                    if (id) {
+                        await autoSaveStore();
+                        resetStoreForm();
+                        return;
+                    }
+                    const body = JSON.stringify({ name: document.getElementById('storeName').value, maxHours: document.getElementById('storeMaxHours').value });
+                    const token = localStorage.getItem('token');
+                    const url = '/api/stores';
+                    const method = 'POST';
+                    await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body });
+                    resetStoreForm();
+                    loadData();
+                });
+                document.getElementById('storeCancelBtn').addEventListener('click', resetStoreForm);
+
+                let memberAutoSaveTimeout;
+
+                async function autoSaveMember() {
+                    const id = dom.addMemberForm.dataset.editId;
+                    if (!id) return; // Only auto-save in edit mode
+                    const cbs = Array.from(dom.memberStoresCheckboxes.querySelectorAll('input:checked'));
+                    const storeIds = cbs.map(cb => parseInt(cb.value));
+                    if (storeIds.length === 0) {
+                        showToast('Member must have at least one store', true);
+                        return;
+                    }
+                    const body = JSON.stringify({
+                        name: document.getElementById('memberName').value,
+                        phone: document.getElementById('memberPhone').value,
+                        email: document.getElementById('memberEmail').value,
+                        employmentType: document.getElementById('memberEmploymentType').value,
+                        storeIds
                     });
+                    const token = localStorage.getItem('token');
+                    try {
+                        await fetch(`/api/members/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body });
+                        showToast('Member auto-saved');
+                        // Refresh data in background without interrupting user
+                        loadData();
+                    } catch (err) {
+                        showToast('Error saving member', true);
+                    }
+                }
 
-                    tour.start();
+                dom.addMemberForm.addEventListener('change', () => {
+                    if (dom.addMemberForm.dataset.editId) {
+                        clearTimeout(memberAutoSaveTimeout);
+                        memberAutoSaveTimeout = setTimeout(autoSaveMember, 400);
+                    }
+                });
+
+                dom.addMemberForm.addEventListener('input', () => {
+                    if (dom.addMemberForm.dataset.editId) {
+                        clearTimeout(memberAutoSaveTimeout);
+                        memberAutoSaveTimeout = setTimeout(autoSaveMember, 800);
+                    }
+                });
+
+                dom.addMemberForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const id = dom.addMemberForm.dataset.editId;
+                    if (id) {
+                        return autoSaveMember();
+                    }
+                    const cbs = Array.from(dom.memberStoresCheckboxes.querySelectorAll('input:checked'));
+                    const storeIds = cbs.map(cb => parseInt(cb.value));
+                    if (storeIds.length === 0) return alert('Select at least one store');
+                    const body = JSON.stringify({
+                        name: document.getElementById('memberName').value,
+                        phone: document.getElementById('memberPhone').value,
+                        email: document.getElementById('memberEmail').value,
+                        employmentType: document.getElementById('memberEmploymentType').value,
+                        storeIds
+                    });
+                    const token = localStorage.getItem('token');
+                    await fetch('/api/members', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body });
+                    resetMemberForm();
+                    loadData();
+                });
+                document.getElementById('memberCancelBtn').addEventListener('click', resetMemberForm);
+
+                if (!dom.weekStartDateInput.value) {
+                    const today = new Date();
+                    dom.weekStartDateInput.value = getLocalYMD(today);
+                }
+
+                // --- PayPal Integration Logic ---
+                async function initPayPal() {
+                    try {
+                        const res = await fetch('/api/config/public');
+                        if (!res.ok) return;
+                        const config = await res.json();
+                        // Setup standard Donate button to alert if SDK fails
+                        if (dom.supportDonateBtn) {
+                            dom.supportDonateBtn.addEventListener('click', () => {
+                                alert(`Thanks for considering a donation! Please PayPal to: ${config.paypalBusinessEmail}`);
+                            });
+                        }
+
+                        // We will just use standard simple checkout for donations as subscriptions need a pre-made Plan ID on the developer dashboard
+                        const script = document.createElement('script');
+                        script.src = `https://www.paypal.com/sdk/js?client-id=ARcSKHeuTjuze8ykv6zU_RXhms_cneCxaLQuwlWznw_AtGF7RSDSBLAhPCfGGrqTw-Hn8xalzt7e0O5n&currency=${config.supportCurrency}`;
+                        script.addEventListener('load', () => {
+                            document.getElementById('standard-support-buttons').classList.add('hidden');
+                            paypal.Buttons({
+                                style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'paypal' },
+                                createOrder: function (data, actions) {
+                                    return actions.order.create({
+                                        purchase_units: [{
+                                            amount: { value: '5.00' },
+                                            description: 'Donation to Roster Manager ($5)'
+                                        }]
+                                    });
+                                },
+                                onApprove: function (data, actions) {
+                                    return actions.order.capture().then(function (details) {
+                                        alert('Thank you for your generous donation, ' + details.payer.name.given_name + '!');
+                                    });
+                                }
+                            }).render('#paypal-button-container');
+                        });
+                        document.body.appendChild(script);
+                    } catch (e) {
+                        console.error("PayPal Init Error", e);
+                    }
+                }
+                initPayPal();
+
+                // --- Guided Tour Logic ---
+                const startTourBtn = document.getElementById('startTourBtn');
+                if (startTourBtn) {
+                    startTourBtn.addEventListener('click', () => {
+                        const tour = introJs();
+
+                        // Base steps applicable to both views
+                        const steps = [
+                            {
+                                title: 'Welcome!',
+                                intro: 'Welcome to Roster Manager! Let\'s take a quick tour to show you how to navigate the system.'
+                            },
+                            {
+                                element: document.querySelector('#roster-filters'),
+                                title: 'Filters',
+                                intro: 'Use these filters to select which store to view and pick the starting date for your schedule.',
+                                position: 'bottom'
+                            },
+                            {
+                                element: document.querySelector('.view-controls'),
+                                title: 'View Options',
+                                intro: 'Switch between seeing the whole Week, or a Fortnight (14 days) at a time.',
+                                position: 'bottom'
+                            },
+                            {
+                                element: document.querySelector('#schedule-container'),
+                                title: 'The Schedule Grid',
+                                intro: 'Here you can see everyone\'s shifts. <br><br><b>Tip:</b> Click on a schedule cell or employee name to quickly select them for editing below!',
+                                position: 'top'
+                            }
+                        ];
+
+                        // Added steps only if in Admin mode
+                        if (isAdmin) {
+                            steps.push({
+                                element: document.querySelector('#openSidebarBtn'),
+                                title: 'Admin & Extra Tools',
+                                intro: 'As an administrator, you can manage Rules, Stores, Members, and Exports from this menu.',
+                                position: 'right'
+                            });
+                            steps.push({
+                                element: document.querySelector('#shift-editor'),
+                                title: 'Shift Editor',
+                                intro: 'Use this panel to specify exact times for an employee. Select an employee, check the days they work, enter times, and hit Save Period.',
+                                position: 'top'
+                            });
+                        } else {
+                            steps.push({
+                                element: document.querySelector('#mainExportBtn'),
+                                title: 'Employee Actions',
+                                intro: 'Export your personal roster right here to save to your calendar.',
+                                position: 'bottom'
+                            });
+                        }
+
+                        tour.setOptions({
+                            steps: steps,
+                            showProgress: true,
+                            showBullets: true,
+                            exitOnOverlayClick: true,
+                            disableInteraction: true,
+                            keyboardNavigation: true
+                        });
+
+                        tour.start();
+                    });
+                }
+
+                loadData(); if (localStorage.getItem('isAdmin') === 'true') enterAdminMode();
+            });
+
+            // Register Service Worker
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(registration => {
+                            console.log('ServiceWorker registration successful');
+                        })
+                        .catch(err => {
+                            console.log('ServiceWorker registration failed: ', err);
+                        });
                 });
             }
+        </script>
 
-            loadData(); if (localStorage.getItem('isAdmin') === 'true') enterAdminMode();
-        });
-
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-    </script>
-
-    <footer
-        class="mt-12 pb-8 text-center flex flex-col items-center justify-center opacity-50 hover:opacity-100 transition-opacity">
-        <a href="https://bypat.com.au" target="_blank" rel="noopener noreferrer"
-            class="flex flex-col items-center gap-1">
-            <span class="text-xs text-gray-500 font-medium">Powered by</span>
-            <img src="images/bypat_logo.png" alt="by Pat" class="h-8 object-contain filter invert">
-        </a>
-    </footer>
+        <footer
+            class="mt-12 pb-8 text-center flex flex-col items-center justify-center opacity-50 hover:opacity-100 transition-opacity">
+            <a href="https://bypat.com.au" target="_blank" rel="noopener noreferrer"
+                class="flex flex-col items-center gap-1">
+                <span class="text-xs text-gray-500 font-medium">Powered by</span>
+                <img src="images/bypat_logo.png" alt="by Pat" class="h-8 object-contain filter invert">
+            </a>
+        </footer>
 </body>
 
 </html>

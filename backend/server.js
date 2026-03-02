@@ -122,7 +122,13 @@ app.post('/api/stores', authenticateToken, async (req, res) => {
 
 app.put('/api/stores/:id', authenticateToken, async (req, res) => {
     const { name, maxHours } = req.body;
-    const hours = maxHours !== undefined ? parseFloat(maxHours) : null;
+    let hours = null;
+    if (maxHours !== undefined && maxHours !== null && maxHours !== '') {
+        hours = parseFloat(maxHours);
+        if (isNaN(hours)) hours = 0;
+    } else if (maxHours === '') {
+        hours = 0;
+    }
     let query = 'UPDATE stores SET ';
     const params = [];
     if (name !== undefined) { query += 'name = ?, '; params.push(name); }
