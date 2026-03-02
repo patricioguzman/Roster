@@ -1,0 +1,9 @@
+node_modules/
+.env
+.DS_Store
+*.sqlite
+*.sqlite3
+*.zip
+backend_error.log
+__pycache__/
+*.pyc
