@@ -446,6 +446,19 @@
                     </div>
                 </div>
 
+                <!-- Reporting Section -->
+                <div class="px-5 py-5 border-b border-gray-800 flex-col hidden" id="reportingMenuSection">
+                    <h3 class="text-[10px] uppercase font-bold text-gray-500 mb-3 tracking-widest pl-2">Reporting</h3>
+                    <div class="flex flex-col gap-1.5">
+                        <button id="openWorkedHoursBtn"
+                            class="text-left py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium hidden"><i
+                                data-lucide="clock" class="w-4 h-4 text-blue-400"></i> Worked Hours</button>
+                        <button id="openReportsBtn"
+                            class="text-left py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-3 text-sm font-medium hidden"><i
+                                data-lucide="bar-chart-2" class="w-4 h-4 text-green-400"></i> Download Reports</button>
+                    </div>
+                </div>
+
                 <!-- Admin Tools Section -->
                 <div class="px-5 py-5 border-b border-gray-800 admin-only hidden flex-col">
                     <h3 class="text-[10px] uppercase font-bold text-gray-500 mb-3 tracking-widest pl-2">Admin Tools</h3>
@@ -707,6 +720,93 @@
             </div>
         </div>
 
+        <!-- Worked Hours Modal -->
+        <div id="workedHoursModal"
+            class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
+            <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-5xl modal-content transform scale-95 p-6 flex flex-col max-h-[90vh]">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i data-lucide="clock"
+                            class="w-5 h-5 text-blue-400"></i> Worked Hours Upload</h2>
+                    <button id="closeWorkedHoursModalBtn" class="text-gray-400 hover:text-white transition"><i
+                            data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+
+                <div class="flex gap-4 mb-4">
+                    <select id="whStoreSelect" class="bg-gray-800 border border-gray-700 rounded-lg py-1.5 px-2 text-sm text-white"></select>
+                    <input type="date" id="whStartDate" class="bg-gray-800 border border-gray-700 rounded-lg py-1.5 px-2 text-sm text-white" style="color-scheme: dark;">
+                    <button id="whLoadBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-1.5 px-4 rounded-lg transition">Load Staff</button>
+                </div>
+
+                <div id="whStatusAlert" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
+
+                <div class="overflow-y-auto flex-1 bg-black rounded-lg border border-gray-800 p-2">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="text-xs text-gray-400 uppercase bg-gray-900 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-3 py-2">Employee</th>
+                                <th class="px-2 py-2 w-20 text-center">Ordinary</th>
+                                <th class="px-2 py-2 w-20 text-center">Saturday</th>
+                                <th class="px-2 py-2 w-20 text-center">Sunday</th>
+                                <th class="px-2 py-2 w-20 text-center">PH</th>
+                                <th class="px-2 py-2 w-20 text-center">AL</th>
+                                <th class="px-2 py-2 w-20 text-center">SL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="whTableBody" class="divide-y divide-gray-800 text-white">
+                            <!-- Populated dynamically -->
+                            <tr><td colspan="7" class="text-center py-4 text-gray-500 italic">Select store and date, then click Load Staff</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-800">
+                    <button id="whCancelBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Cancel</button>
+                    <button id="whSaveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Modal -->
+        <div id="reportsModal"
+            class="fixed inset-0 bg-black/70 modal-overlay hidden opacity-0 flex items-center justify-center p-4 z-50">
+            <div class="bg-gray-900 rounded-2xl shadow-xl w-full max-w-md modal-content transform scale-95 p-6 flex flex-col max-h-[90vh]">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-2">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i data-lucide="bar-chart-2"
+                            class="w-5 h-5 text-green-400"></i> Download Reports</h2>
+                    <button id="closeReportsModalBtn" class="text-gray-400 hover:text-white transition"><i
+                            data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Weekly Report -->
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                        <h3 class="text-lg font-medium text-white mb-3">Weekly Report</h3>
+                        <div class="flex flex-col gap-3">
+                            <select id="reportStoreSelect" class="bg-black border border-gray-600 rounded p-2 text-sm text-white w-full"></select>
+                            <input type="date" id="reportStartDate" class="bg-black border border-gray-600 rounded p-2 text-sm text-white w-full" style="color-scheme: dark;">
+                            <button id="downloadWeeklyBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i> Download Weekly (Excel)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fortnightly Report -->
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700" id="fortnightlyReportBlock">
+                        <h3 class="text-lg font-medium text-white mb-3">Fortnightly Report</h3>
+                        <div class="flex flex-col gap-3">
+                            <input type="date" id="fortnightStartDate" class="bg-black border border-gray-600 rounded p-2 text-sm text-white w-full" style="color-scheme: dark;">
+                            <button id="downloadFortnightlyBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i> Download Fortnightly (Excel)
+                            </button>
+                            <button id="closeFortnightBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition items-center justify-center gap-2 hidden admin-only">
+                                <i data-lucide="lock" class="w-4 h-4 inline-block"></i> Close & Lock Period
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 lucide.createIcons();
@@ -714,7 +814,7 @@
                 let appData = { stores: [], members: [], shifts: [], settings: {} };
                 let memberMgmtFilterStoreId = 'all';
                 let memberMgmtSearchQuery = '';
-                let hoursChart = null, budgetChart = null, currentView = 'fortnight', isAdmin = false, isDragging = false, dragStartCell = null;
+                let hoursChart = null, budgetChart = null, currentView = 'fortnight', isAdmin = false, isManager = false, userRole = null, isDragging = false, dragStartCell = null;
                 const getLocalYMD = (d) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
                 const dom = {
@@ -733,7 +833,13 @@
                     liveClock: document.getElementById('liveClock'),
 
                     openSidebarBtn: document.getElementById('openSidebarBtn'), closeSidebarBtn: document.getElementById('closeSidebarBtn'), saasSidebar: document.getElementById('saasSidebar'), sidebarOverlay: document.getElementById('sidebarOverlay'),
-                    sidebarExportBtn: document.getElementById('sidebarExportBtn'), sidebarPdfBtn: document.getElementById('sidebarPdfBtn'), sidebarSyncBtn: document.getElementById('sidebarSyncBtn')
+                    sidebarExportBtn: document.getElementById('sidebarExportBtn'), sidebarPdfBtn: document.getElementById('sidebarPdfBtn'), sidebarSyncBtn: document.getElementById('sidebarSyncBtn'),
+                    openWorkedHoursBtn: document.getElementById('openWorkedHoursBtn'), workedHoursModal: document.getElementById('workedHoursModal'), closeWorkedHoursModalBtn: document.getElementById('closeWorkedHoursModalBtn'),
+                    whStoreSelect: document.getElementById('whStoreSelect'), whStartDate: document.getElementById('whStartDate'), whLoadBtn: document.getElementById('whLoadBtn'), whTableBody: document.getElementById('whTableBody'), whSaveBtn: document.getElementById('whSaveBtn'), whCancelBtn: document.getElementById('whCancelBtn'), whStatusAlert: document.getElementById('whStatusAlert'),
+                    openReportsBtn: document.getElementById('openReportsBtn'), reportsModal: document.getElementById('reportsModal'), closeReportsModalBtn: document.getElementById('closeReportsModalBtn'),
+                    reportStoreSelect: document.getElementById('reportStoreSelect'), reportStartDate: document.getElementById('reportStartDate'), downloadWeeklyBtn: document.getElementById('downloadWeeklyBtn'),
+                    fortnightStartDate: document.getElementById('fortnightStartDate'), downloadFortnightlyBtn: document.getElementById('downloadFortnightlyBtn'), fortnightlyReportBlock: document.getElementById('fortnightlyReportBlock'),
+                    closeFortnightBtn: document.getElementById('closeFortnightBtn')
                 };
 
                 function updateLiveClock() {
@@ -1175,18 +1281,60 @@
                 }
 
                 function enterAdminMode() {
-                    isAdmin = true; localStorage.setItem('isAdmin', 'true');
+                    const role = localStorage.getItem('userRole') || 'admin';
+                    isAdmin = role === 'admin';
+                    isManager = role === 'manager';
+                    userRole = role;
+
                     dom.loginBtn.classList.add('hidden'); dom.logoutBtn.classList.remove('hidden');
-                    dom.adminControls.forEach(el => el.classList.remove('hidden'));
-                    dom.employeeHeaderControls.forEach(el => el.classList.add('hidden'));
+
+                    if (isAdmin) {
+                        dom.adminControls.forEach(el => el.classList.remove('hidden'));
+                        if (document.getElementById('reportingMenuSection')) document.getElementById('reportingMenuSection').classList.remove('hidden');
+                        if (document.getElementById('openReportsBtn')) document.getElementById('openReportsBtn').classList.remove('hidden');
+                        if (document.getElementById('openWorkedHoursBtn')) document.getElementById('openWorkedHoursBtn').classList.remove('hidden');
+                    } else if (isManager) {
+                        // Manager shouldn't see full admin tools, but should see the shift editor
+                        dom.adminControls.forEach(el => el.classList.add('hidden'));
+                        if (dom.shiftEditor) dom.shiftEditor.classList.remove('hidden');
+                        if (document.getElementById('reportingMenuSection')) document.getElementById('reportingMenuSection').classList.remove('hidden');
+                        if (document.getElementById('openReportsBtn')) document.getElementById('openReportsBtn').classList.remove('hidden');
+                        if (document.getElementById('openWorkedHoursBtn')) document.getElementById('openWorkedHoursBtn').classList.remove('hidden');
+                    } else {
+                        // Regular employee or unknown role
+                        dom.adminControls.forEach(el => el.classList.add('hidden'));
+                        if (dom.shiftEditor) dom.shiftEditor.classList.add('hidden');
+                        if (document.getElementById('reportingMenuSection')) document.getElementById('reportingMenuSection').classList.add('hidden');
+                    }
+
+                    if (dom.employeeHeaderControls) {
+                        dom.employeeHeaderControls.forEach(el => el.classList.add('hidden'));
+                    }
+
+                    if (dom.sidebarExportBtn) {
+                        if (isAdmin || isManager) dom.sidebarExportBtn.classList.remove('hidden');
+                        else dom.sidebarExportBtn.classList.add('hidden');
+                    }
+
                     updateAllViews();
                 }
 
                 function logoutAdmin() {
-                    isAdmin = false; localStorage.removeItem('token'); localStorage.removeItem('isAdmin');
+                    isAdmin = false; isManager = false; userRole = null;
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('isAdmin');
+                    localStorage.removeItem('userRole');
+
                     dom.loginBtn.classList.remove('hidden'); dom.logoutBtn.classList.add('hidden');
                     dom.adminControls.forEach(el => el.classList.add('hidden'));
-                    dom.employeeHeaderControls.forEach(el => el.classList.remove('hidden'));
+                    if (dom.shiftEditor) dom.shiftEditor.classList.add('hidden');
+
+                    if (document.getElementById('openReportsBtn')) document.getElementById('openReportsBtn').classList.add('hidden');
+                    if (document.getElementById('openWorkedHoursBtn')) document.getElementById('openWorkedHoursBtn').classList.add('hidden');
+
+                    if (dom.employeeHeaderControls) {
+                        dom.employeeHeaderControls.forEach(el => el.classList.remove('hidden'));
+                    }
                     updateAllViews();
                 }
 
@@ -1224,12 +1372,227 @@
                     doc.save('roster.pdf');
                 }
 
+                // --- Worked Hours Logic ---
+                if (dom.openWorkedHoursBtn) {
+                    dom.openWorkedHoursBtn.addEventListener('click', () => {
+                        closeSidebar();
+                        toggleModal(dom.workedHoursModal);
+                        dom.whStoreSelect.innerHTML = dom.storeSelector.innerHTML;
+                        dom.whStoreSelect.value = dom.storeSelector.value;
+                        dom.whStartDate.value = dom.weekStartDateInput.value;
+                    });
+                }
+                if (dom.closeWorkedHoursModalBtn) dom.closeWorkedHoursModalBtn.addEventListener('click', () => toggleModal(dom.workedHoursModal));
+                if (dom.whCancelBtn) dom.whCancelBtn.addEventListener('click', () => toggleModal(dom.workedHoursModal));
+
+                if (dom.whLoadBtn) {
+                    dom.whLoadBtn.addEventListener('click', async () => {
+                        const storeId = dom.whStoreSelect.value;
+                        const date = dom.whStartDate.value;
+                        if (!storeId || !date) return alert('Select store and date');
+
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`/api/worked-hours/${storeId}/${date}`, { headers: { 'Authorization': `Bearer ${token}` }});
+                        if (!res.ok) {
+                            showToast('Error loading data', true);
+                            return;
+                        }
+                        const data = await res.json();
+
+                        dom.whStatusAlert.classList.remove('hidden', 'bg-red-500/20', 'text-red-400', 'bg-green-500/20', 'text-green-400', 'border-red-500/50', 'border-green-500/50', 'border');
+                        dom.whSaveBtn.disabled = false;
+                        dom.whSaveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                        if (data.period && data.period.status === 'closed') {
+                            dom.whStatusAlert.textContent = 'This reporting period is CLOSED. Editing is disabled unless you are an admin.';
+                            dom.whStatusAlert.classList.add('bg-red-500/20', 'text-red-400', 'border', 'border-red-500/50');
+                            if (!isAdmin) {
+                                dom.whSaveBtn.disabled = true;
+                                dom.whSaveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                            }
+                        } else {
+                            dom.whStatusAlert.textContent = 'This reporting period is OPEN.';
+                            dom.whStatusAlert.classList.add('bg-green-500/20', 'text-green-400', 'border', 'border-green-500/50');
+                        }
+
+                        const storeMembers = appData.members.filter(m => m.storeIds && m.storeIds.includes(parseInt(storeId)));
+
+                        if (storeMembers.length === 0) {
+                            dom.whTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500 italic">No employees assigned to this store</td></tr>';
+                            return;
+                        }
+
+                        dom.whTableBody.innerHTML = storeMembers.map(m => {
+                            const entry = (data.hours || []).find(h => h.employee_id === m.id) || {};
+                            return `<tr data-emp-id="${m.id}" class="hover:bg-gray-800 transition-colors">
+                                <td class="px-3 py-2 font-medium">${m.name}</td>
+                                <td class="px-1 py-2 text-center"><input type="number" step="0.25" min="0" class="wh-input ord w-16 bg-black border border-gray-700 rounded p-1 text-center text-sm focus:ring-1 focus:ring-orange-500" value="${entry.ordinary_hours || ''}"></td>
+                                <td class="px-1 py-2 text-center"><input type="number" step="0.25" min="0" class="wh-input sat w-16 bg-black border border-gray-700 rounded p-1 text-center text-sm focus:ring-1 focus:ring-orange-500" value="${entry.saturday_hours || ''}"></td>
+                                <td class="px-1 py-2 text-center"><input type="number" step="0.25" min="0" class="wh-input sun w-16 bg-black border border-gray-700 rounded p-1 text-center text-sm focus:ring-1 focus:ring-orange-500" value="${entry.sunday_hours || ''}"></td>
+                                <td class="px-1 py-2 text-center"><input type="number" step="0.25" min="0" class="wh-input ph w-16 bg-black border border-gray-700 rounded p-1 text-center text-sm focus:ring-1 focus:ring-orange-500" value="${entry.ph_hours || ''}"></td>
+                                <td class="px-1 py-2 text-center"><input type="number" step="0.25" min="0" class="wh-input al w-16 bg-black border border-gray-700 rounded p-1 text-center text-sm focus:ring-1 focus:ring-orange-500" value="${entry.al_hours || ''}"></td>
+                                <td class="px-1 py-2 text-center"><input type="number" step="0.25" min="0" class="wh-input sl w-16 bg-black border border-gray-700 rounded p-1 text-center text-sm focus:ring-1 focus:ring-orange-500" value="${entry.sl_hours || ''}"></td>
+                            </tr>`;
+                        }).join('');
+                    });
+                }
+
+                if (dom.whSaveBtn) {
+                    dom.whSaveBtn.addEventListener('click', async () => {
+                        const storeId = dom.whStoreSelect.value;
+                        const date = dom.whStartDate.value;
+                        if (!storeId || !date) return;
+
+                        const entries = [];
+                        dom.whTableBody.querySelectorAll('tr[data-emp-id]').forEach(tr => {
+                            const empId = tr.dataset.empId;
+                            const ord = parseFloat(tr.querySelector('.ord').value) || 0;
+                            const sat = parseFloat(tr.querySelector('.sat').value) || 0;
+                            const sun = parseFloat(tr.querySelector('.sun').value) || 0;
+                            const ph = parseFloat(tr.querySelector('.ph').value) || 0;
+                            const al = parseFloat(tr.querySelector('.al').value) || 0;
+                            const sl = parseFloat(tr.querySelector('.sl').value) || 0;
+
+                            if (ord > 0 || sat > 0 || sun > 0 || ph > 0 || al > 0 || sl > 0) {
+                                entries.push({ employeeId: empId, ordinary: ord, saturday: sat, sunday: sun, ph, al, sl });
+                            }
+                        });
+
+                        const token = localStorage.getItem('token');
+                        const res = await fetch('/api/worked-hours', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ storeId, startDate: date, entries })
+                        });
+
+                        if (res.ok) {
+                            showToast('Worked hours saved successfully');
+                            toggleModal(dom.workedHoursModal);
+                        } else {
+                            const data = await res.json();
+                            showToast(`Error: ${data.error}`, true);
+                        }
+                    });
+                }
+
+            // --- Reports Logic ---
+            if (dom.openReportsBtn) {
+                dom.openReportsBtn.addEventListener('click', () => {
+                    closeSidebar();
+                    toggleModal(dom.reportsModal);
+                    dom.reportStoreSelect.innerHTML = dom.storeSelector.innerHTML;
+                    dom.reportStoreSelect.value = dom.storeSelector.value;
+                    dom.reportStartDate.value = dom.weekStartDateInput.value;
+                    dom.fortnightStartDate.value = dom.weekStartDateInput.value;
+
+                    if (!isAdmin) {
+                        dom.fortnightlyReportBlock.classList.add('hidden');
+                    } else {
+                        dom.fortnightlyReportBlock.classList.remove('hidden');
+                    }
+                });
+            }
+            if (dom.closeReportsModalBtn) dom.closeReportsModalBtn.addEventListener('click', () => toggleModal(dom.reportsModal));
+
+            if (dom.downloadWeeklyBtn) {
+                dom.downloadWeeklyBtn.addEventListener('click', () => {
+                    const storeId = dom.reportStoreSelect.value;
+                    const date = dom.reportStartDate.value;
+                    if (!storeId || !date) return alert('Select store and date');
+
+                    const token = localStorage.getItem('token');
+                    fetch(`/api/reports/weekly/${storeId}/${date}`, { headers: { 'Authorization': `Bearer ${token}` }})
+                        .then(res => {
+                            if (!res.ok) throw new Error('Export failed');
+                            return res.blob();
+                        })
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Weekly_Report_${storeId}_${date}.xlsx`;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                        })
+                        .catch(err => {
+                            showToast('Error exporting report', true);
+                        });
+                });
+            }
+
+            if (dom.downloadFortnightlyBtn) {
+                dom.downloadFortnightlyBtn.addEventListener('click', () => {
+                    const date = dom.fortnightStartDate.value;
+                    if (!date) return alert('Select a start date');
+
+                    const token = localStorage.getItem('token');
+                    fetch(`/api/reports/fortnightly/${date}`, { headers: { 'Authorization': `Bearer ${token}` }})
+                        .then(res => {
+                            if (!res.ok) throw new Error('Export failed');
+                            return res.blob();
+                        })
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Fortnightly_Report_${date}.xlsx`;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                        })
+                        .catch(err => {
+                            showToast('Error exporting report', true);
+                        });
+                });
+            }
+
+            if (dom.closeFortnightBtn) {
+                dom.closeFortnightBtn.addEventListener('click', () => {
+                    const date = dom.fortnightStartDate.value;
+                    if (!date) return alert('Select a start date');
+                    if (!confirm('Are you sure you want to CLOSE and LOCK this fortnight? Managers will no longer be able to edit hours for this period.')) return;
+
+                    const token = localStorage.getItem('token');
+                    const d = new Date(date + 'T00:00:00');
+                    const endD = new Date(d);
+                    endD.setDate(endD.getDate() + 13);
+                    const endDateStr = endD.toISOString().split('T')[0];
+
+                    fetch('/api/reports/close-fortnight', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ startDate: date, endDate: endDateStr })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Fortnight successfully closed and locked.');
+                            toggleModal(dom.reportsModal);
+                        }
+                        else showToast('Error closing period', true);
+                    });
+                });
+            }
+
                 // Events
                 dom.loginBtn.addEventListener('click', () => toggleModal(dom.loginModal)); dom.closeLoginModalBtn.addEventListener('click', () => toggleModal(dom.loginModal));
                 dom.loginForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: dom.loginForm.username.value, password: dom.loginForm.password.value }) });
-                    if (res.ok) { const d = await res.json(); localStorage.setItem('token', d.token); enterAdminMode(); toggleModal(dom.loginModal); }
+                    if (res.ok) {
+                        const d = await res.json();
+                        localStorage.setItem('token', d.token);
+                        localStorage.setItem('userRole', d.role || 'admin');
+                        if (d.role === 'admin' || d.role === 'manager') localStorage.setItem('isAdmin', 'true'); // legacy flag
+                        enterAdminMode();
+                        loadData(); // reload data with new token
+                        toggleModal(dom.loginModal);
+                    } else {
+                        const err = await res.json();
+                        dom.loginError.textContent = err.error || 'Login failed';
+                        dom.loginError.classList.remove('hidden');
+                    }
                 });
                 dom.logoutBtn.addEventListener('click', logoutAdmin);
                 dom.openEngineRulesBtn.addEventListener('click', () => toggleModal(dom.engineRulesModal)); dom.closeEngineRulesModalBtn.addEventListener('click', () => toggleModal(dom.engineRulesModal));
@@ -1275,8 +1638,28 @@
                 if (dom.sidebarExportBtn) {
                     dom.sidebarExportBtn.addEventListener('click', () => {
                         closeSidebar();
-                        // Instead of showing the export modal, directly generate CSV as requested by SaaS restructure
-                        generateRosterCSV();
+                        if (!appData.currentStoreId) return alert('Select a store first');
+                        const date = dom.weekStartDateInput.value;
+                        if (!date) return alert('Select a start date');
+
+                        const token = localStorage.getItem('token');
+                        fetch(`/api/export/roster/${appData.currentStoreId}/${date}`, { headers: { 'Authorization': `Bearer ${token}` }})
+                            .then(res => {
+                                if (!res.ok) throw new Error('Export failed');
+                                return res.blob();
+                            })
+                            .then(blob => {
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `Roster_${appData.currentStoreId}_${date}.xlsx`;
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                            })
+                            .catch(err => {
+                                showToast('Error exporting roster', true);
+                            });
                     });
                 }
 
