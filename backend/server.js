@@ -56,31 +56,36 @@ app.get('/api/data', async (req, res) => {
     try {
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
+        const membersQuery = `
+            SELECT m.*, GROUP_CONCAT(ms.store_id) as store_ids
+            FROM members m
+            LEFT JOIN member_stores ms ON m.id = ms.member_id
+            GROUP BY m.id
+        `;
+
+        // ⚡ Bolt: Parallelize independent DB queries to reduce latency
+        const [settingsRows, stores, members, shifts] = await Promise.all([
+            db.query('SELECT * FROM settings'),
+            db.query('SELECT * FROM stores'),
+            db.query(membersQuery),
+            db.query('SELECT * FROM shifts')
+        ]);
+
         settingsRows.forEach(row => {
             // Handle both sqlite "key" and mysql "key_name"
             const k = row.key_name || row.key;
             data.settings[k] = row.value;
         });
 
-        const stores = await db.query('SELECT * FROM stores');
         data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
         if (stores.length > 0) data.currentStoreId = stores[0].id;
 
-        const membersQuery = `
-            SELECT m.*, GROUP_CONCAT(ms.store_id) as store_ids 
-            FROM members m
-            LEFT JOIN member_stores ms ON m.id = ms.member_id
-            GROUP BY m.id
-        `;
-        const members = await db.query(membersQuery);
         data.members = members.map(m => ({
             id: m.id, name: m.name, phone: m.phone, email: m.email,
             storeIds: m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [],
             employmentType: m.employment_type || 'casual'
         }));
 
-        const shifts = await db.query('SELECT * FROM shifts');
         data.shifts = shifts.map(s => ({
             id: s.id, storeId: s.store_id, memberId: s.member_id, name: s.member_name,
             date: s.date, startTime: s.start_time, endTime: s.end_time, duration: s.duration
