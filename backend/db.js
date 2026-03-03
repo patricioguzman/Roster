@@ -47,9 +47,21 @@ async function initMysql() {
         `CREATE TABLE IF NOT EXISTS member_stores (member_id INTEGER NOT NULL, store_id INTEGER NOT NULL, PRIMARY KEY (member_id, store_id), FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE CASCADE, FOREIGN KEY (store_id) REFERENCES stores (id) ON DELETE CASCADE)`,
         `CREATE TABLE IF NOT EXISTS settings (key_name VARCHAR(100) PRIMARY KEY, value VARCHAR(255))`,
         `CREATE TABLE IF NOT EXISTS shifts (id INTEGER PRIMARY KEY AUTO_INCREMENT, store_id INTEGER NOT NULL, member_id INTEGER NOT NULL, member_name VARCHAR(255), date VARCHAR(20) NOT NULL, start_time VARCHAR(20) NOT NULL, end_time VARCHAR(20) NOT NULL, duration DECIMAL(10,2) NOT NULL)`,
-        `CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY AUTO_INCREMENT, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL)`
+        `CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY AUTO_INCREMENT, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(20) DEFAULT 'admin', assigned_store_ids TEXT, managed_store_ids TEXT)`,
+        `CREATE TABLE IF NOT EXISTS worked_hours (id INTEGER PRIMARY KEY AUTO_INCREMENT, store_id INTEGER NOT NULL, employee_id INTEGER NOT NULL, date VARCHAR(20) NOT NULL, ordinary_hours DECIMAL(10,2) DEFAULT 0, saturday_hours DECIMAL(10,2) DEFAULT 0, sunday_hours DECIMAL(10,2) DEFAULT 0, ph_hours DECIMAL(10,2) DEFAULT 0, al_hours DECIMAL(10,2) DEFAULT 0, sl_hours DECIMAL(10,2) DEFAULT 0, notes TEXT, uploaded_by_user_id INTEGER, uploaded_at DATETIME, source VARCHAR(50) DEFAULT 'system')`,
+        `CREATE TABLE IF NOT EXISTS reporting_periods (id INTEGER PRIMARY KEY AUTO_INCREMENT, start_date VARCHAR(20) NOT NULL, end_date VARCHAR(20) NOT NULL, type VARCHAR(20) DEFAULT 'fortnightly', status VARCHAR(20) DEFAULT 'open', closed_at DATETIME, closed_by INTEGER)`
     ];
     for (let q of queries) await mysqlPool.query(q);
+
+    // Add columns if they don't exist in existing DB
+    try {
+        await mysqlPool.query(`ALTER TABLE admins ADD COLUMN role VARCHAR(20) DEFAULT 'admin'`);
+        await mysqlPool.query(`ALTER TABLE admins ADD COLUMN assigned_store_ids TEXT`);
+        await mysqlPool.query(`ALTER TABLE admins ADD COLUMN managed_store_ids TEXT`);
+    } catch(err) {
+        // Ignore errors if columns already exist
+    }
+
     await checkAdmin(dbAPI);
 }
 
@@ -60,9 +72,18 @@ function initSqlite() {
         sqliteDb.run(`CREATE TABLE IF NOT EXISTS member_stores (member_id INTEGER NOT NULL, store_id INTEGER NOT NULL, PRIMARY KEY (member_id, store_id), FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE CASCADE, FOREIGN KEY (store_id) REFERENCES stores (id) ON DELETE CASCADE)`);
         sqliteDb.run(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`);
         sqliteDb.run(`CREATE TABLE IF NOT EXISTS shifts (id INTEGER PRIMARY KEY AUTOINCREMENT, store_id INTEGER NOT NULL, member_id INTEGER NOT NULL, member_name TEXT, date TEXT NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL, duration REAL NOT NULL)`);
-        sqliteDb.run(`CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL)`, () => {
-            checkAdmin(dbAPI).catch(console.error);
+        sqliteDb.run(`CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, role TEXT DEFAULT 'admin', assigned_store_ids TEXT, managed_store_ids TEXT)`, () => {
+            // Try to add columns if they don't exist
+            sqliteDb.run(`ALTER TABLE admins ADD COLUMN role TEXT DEFAULT 'admin'`, () => {
+                sqliteDb.run(`ALTER TABLE admins ADD COLUMN assigned_store_ids TEXT`, () => {
+                    sqliteDb.run(`ALTER TABLE admins ADD COLUMN managed_store_ids TEXT`, () => {
+                        checkAdmin(dbAPI).catch(console.error);
+                    });
+                });
+            });
         });
+        sqliteDb.run(`CREATE TABLE IF NOT EXISTS worked_hours (id INTEGER PRIMARY KEY AUTOINCREMENT, store_id INTEGER NOT NULL, employee_id INTEGER NOT NULL, date TEXT NOT NULL, ordinary_hours REAL DEFAULT 0, saturday_hours REAL DEFAULT 0, sunday_hours REAL DEFAULT 0, ph_hours REAL DEFAULT 0, al_hours REAL DEFAULT 0, sl_hours REAL DEFAULT 0, notes TEXT, uploaded_by_user_id INTEGER, uploaded_at TEXT, source TEXT DEFAULT 'system')`);
+        sqliteDb.run(`CREATE TABLE IF NOT EXISTS reporting_periods (id INTEGER PRIMARY KEY AUTOINCREMENT, start_date TEXT NOT NULL, end_date TEXT NOT NULL, type TEXT DEFAULT 'fortnightly', status TEXT DEFAULT 'open', closed_at TEXT, closed_by INTEGER)`);
     });
 }
 
