@@ -39,7 +39,7 @@ function parseTimeString(timeStr) {
     // 8-2 -> 08:00-14:00
     const parts = timeStr.split('-');
 
-    function convertPart(p, isEndPart) {
+    function convertPart(p) {
         if (!p) return null;
         let [hourStr, minStr] = p.split(':');
         let h = parseInt(hourStr);
@@ -63,8 +63,8 @@ function parseTimeString(timeStr) {
         return `${hh}:${mm}`;
     }
 
-    let start = convertPart(parts[0], false);
-    let end = convertPart(parts[1], true);
+    let start = convertPart(parts[0]);
+    let end = convertPart(parts[1]);
 
     // Sometimes 5-9 means 17:00-21:00.
     // If start is 17:00, and end part was 9, it became 09:00, but end should be later than start.
