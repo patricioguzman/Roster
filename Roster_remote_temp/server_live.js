@@ -593,32 +593,14 @@ app.post('/api/reports/close-period', authenticateToken, requireAdmin, async (re
     }
 });
 
-// GET EXPORT WEEKLY REPORT (per store or all stores)
+// GET EXPORT WEEKLY REPORT (per store)
 app.get('/api/exports/weekly-report', authenticateToken, async (req, res) => {
     const { storeId, startDate, endDate } = req.query;
     try {
-        if (storeId !== 'all') {
-            const hasAccess = await checkManagerStoreAccess(req.user, parseInt(storeId));
-            if (!hasAccess) return res.status(403).json({ error: 'Forbidden' });
-        } else if (req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Only admins can export all stores' });
-        }
+        const hasAccess = await checkManagerStoreAccess(req.user, parseInt(storeId));
+        if (!hasAccess) return res.status(403).json({ error: 'Forbidden' });
 
-        let query = `
-            SELECT w.*, m.name as employee_name, s.name as store_name 
-            FROM worked_hours w 
-            JOIN members m ON w.member_id = m.id 
-            JOIN stores s ON w.store_id = s.id 
-            WHERE w.date >= ? AND w.date <= ?
-        `;
-        let params = [startDate, endDate];
-
-        if (storeId !== 'all') {
-            query += ` AND w.store_id = ?`;
-            params.push(storeId);
-        }
-
-        const hours = await db.query(query, params);
+        const hours = await db.query('SELECT w.*, m.name as employee_name, s.name as store_name FROM worked_hours w JOIN members m ON w.member_id = m.id JOIN stores s ON w.store_id = s.id WHERE w.store_id = ? AND w.date >= ? AND w.date <= ?', [storeId, startDate, endDate]);
 
         // Aggregate by employee
         const employeeTotals = {};
@@ -654,7 +636,7 @@ app.get('/api/exports/weekly-report', authenticateToken, async (req, res) => {
         xlsx.utils.book_append_sheet(wb, wsEmployees, 'Employee Hours');
 
         // Sheet 2: Store Summary
-        const storeName = storeId === 'all' ? 'All_Stores' : (hours.length > 0 ? hours[0].store_name : 'Store');
+        const storeName = hours.length > 0 ? hours[0].store_name : 'Store';
         const summaryData = [{
             Store: storeName,
             Ordinary: storeTotal.ordinary,
