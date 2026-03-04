@@ -52,9 +52,6 @@ const calcDuration = (startStr, endStr) => {
 
     if (sh === 8 && eh === 1) eh = 13;
 
-    // Ricardo 1-5 -> 13:00 to 17:00
-    if (sh === 13 && eh === 17) { }
-
     if (eh <= sh) eh += 12;
 
     const dur = (eh + end.m / 60) - (sh + start.m / 60);
