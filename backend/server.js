@@ -336,4 +336,8 @@ app.post('/api/paypal/webhook', (req, res) => {
     res.status(200).send('OK');
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+
+module.exports = { app, authenticateToken };
