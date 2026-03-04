@@ -35,20 +35,29 @@ async function run() {
         const [members] = await mysqlPool.query("SELECT id, name FROM members");
         console.log(`Found ${members.length} members in DB.`);
 
+        const memberMap = new Map();
+        for (const m of members) {
+            memberMap.set(m.name.toLowerCase(), m);
+        }
+
+        const promises = [];
         for (let s of staffData) {
-            // Find existing member by name or first name approximation
-            // The JSON has full name and first name. The DB may just have the first name from older stuff.json
-            let dbMember = members.find(m => m.name.toLowerCase() === s.fullName.toLowerCase() || m.name.toLowerCase() === s.firstName.toLowerCase());
+            const dbMember = memberMap.get(s.fullName.toLowerCase()) || memberMap.get(s.firstName.toLowerCase());
 
             if (dbMember) {
-                await mysqlPool.execute("UPDATE members SET phone = ?, email = ? WHERE id = ?", [s.phone, s.email, dbMember.id]);
-                console.log(`Updated contact info for ${dbMember.name}`);
+                promises.push(
+                    mysqlPool.execute("UPDATE members SET phone = ?, email = ? WHERE id = ?", [s.phone, s.email, dbMember.id])
+                        .then(() => console.log(`Updated contact info for ${dbMember.name}`))
+                );
             } else {
                 console.log(`Could not find a match for ${s.fullName} in the database. Inserting...`);
-                await mysqlPool.execute("INSERT INTO members (name, phone, email, employment_type) VALUES (?, ?, ?, ?)", [s.fullName, s.phone, s.email, 'casual']);
-                console.log(`Inserted ${s.fullName} with contact info`);
+                promises.push(
+                    mysqlPool.execute("INSERT INTO members (name, phone, email, employment_type) VALUES (?, ?, ?, ?)", [s.fullName, s.phone, s.email, 'casual'])
+                        .then(() => console.log(`Inserted ${s.fullName} with contact info`))
+                );
             }
         }
+        await Promise.all(promises);
         console.log("Update Complete!");
     } catch (e) {
         console.error("Error:", e);
