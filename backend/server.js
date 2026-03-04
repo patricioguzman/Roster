@@ -233,22 +233,41 @@ app.post('/api/shifts/week', authenticateToken, async (req, res) => {
                 await tx.run(`DELETE FROM shifts WHERE id IN (${placeholders})`, deleteShifts);
             }
             if (saveShifts && saveShifts.length > 0) {
+                // ⚡ Bolt: Cache member lookups to prevent N+1 select queries
+                const memberCache = {};
+                const inserts = [];
+
                 for (let s of saveShifts) {
-                    if (s.id && typeof s.id === 'string' && s.id.startsWith('new_')) {
-                        const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
-                        if (row) {
-                            await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
+                    const isUpdate = (s.id && typeof s.id === 'number');
+                    if (!isUpdate) {
+                        const cacheKey = `${s.name}_${s.storeId}`;
+                        let memberId = memberCache[cacheKey];
+
+                        if (!memberId) {
+                            const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
+                            if (row) {
+                                memberId = row.id;
+                                memberCache[cacheKey] = memberId;
+                            }
                         }
-                    } else if (s.id && typeof s.id === 'number') {
+
+                        if (memberId) {
+                            inserts.push([s.storeId, memberId, s.name, s.date, s.startTime, s.endTime, s.duration]);
+                        }
+                    } else {
                         await tx.run(`UPDATE shifts SET start_time = ?, end_time = ?, duration = ? WHERE id = ?`,
                             [s.startTime, s.endTime, s.duration, s.id]);
-                    } else {
-                        const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
-                        if (row) {
-                            await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
-                        }
+                    }
+                }
+
+                // ⚡ Bolt: Execute bulk insert to avoid N+1 insert queries
+                if (inserts.length > 0) {
+                    const chunkSize = 50;
+                    for (let i = 0; i < inserts.length; i += chunkSize) {
+                        const chunk = inserts.slice(i, i + chunkSize);
+                        const placeholders = chunk.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(',');
+                        const flatParams = chunk.reduce((acc, val) => acc.concat(val), []);
+                        await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES ${placeholders}`, flatParams);
                     }
                 }
             }
