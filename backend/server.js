@@ -233,21 +233,28 @@ app.post('/api/shifts/week', authenticateToken, async (req, res) => {
                 await tx.run(`DELETE FROM shifts WHERE id IN (${placeholders})`, deleteShifts);
             }
             if (saveShifts && saveShifts.length > 0) {
+                // ⚡ Bolt: Use an in-memory dictionary cache to prevent N+1 queries when inserting multiple shifts
+                const memberCache = {};
+
                 for (let s of saveShifts) {
-                    if (s.id && typeof s.id === 'string' && s.id.startsWith('new_')) {
-                        const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
-                        if (row) {
-                            await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
-                        }
-                    } else if (s.id && typeof s.id === 'number') {
+                    if (s.id && typeof s.id === 'number') {
                         await tx.run(`UPDATE shifts SET start_time = ?, end_time = ?, duration = ? WHERE id = ?`,
                             [s.startTime, s.endTime, s.duration, s.id]);
-                    } else {
-                        const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
-                        if (row) {
+                    } else if (!s.id || (typeof s.id === 'string' && s.id.startsWith('new_'))) {
+                        const cacheKey = `${s.name}_${s.storeId}`;
+                        let memberId = memberCache[cacheKey];
+
+                        if (!memberId) {
+                            const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
+                            if (row) {
+                                memberId = row.id;
+                                memberCache[cacheKey] = memberId;
+                            }
+                        }
+
+                        if (memberId) {
                             await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
+                                [s.storeId, memberId, s.name, s.date, s.startTime, s.endTime, s.duration]);
                         }
                     }
                 }
