@@ -973,6 +973,12 @@
                     const empNameColWidth = isFortnight ? 'min-w-[100px] text-xs' : 'min-w-[140px] text-sm';
                     const shiftTextSize = isFortnight ? 'text-[9px] md:text-[11px]' : 'text-xs';
 
+                    // ⚡ Bolt: Pre-compute shifts map for O(1) lookups instead of O(N^2) array finds
+                    const shiftsDict = {};
+                    shifts.forEach(sh => {
+                        shiftsDict[`${sh.name}_${sh.date}`] = sh;
+                    });
+
                     let table = `<table id="schedule-table" class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;"><thead class="bg-gray-50"><tr><th class="sticky left-0 bg-gray-50 z-10 ${cellPadding} border-r ${empNameColWidth}">Employee</th>`;
                     for (let i = 0; i < count; i++) {
                         const d = new Date(sDate); d.setDate(sDate.getDate() + i);
@@ -986,7 +992,7 @@
                         table += `<tr class="employee-row cursor-pointer transition-colors ${isSelected ? 'bg-orange-100 border-orange-400 border-2' : 'hover:bg-gray-50'}" data-row-name="${m.name}"><td class="sticky left-0 ${isSelected ? 'bg-orange-100' : 'bg-white'} z-10 ${cellPadding} border-r font-bold text-gray-900 cell-name truncate ${empNameColWidth}" data-name="${m.name}" title="${m.name}">${m.name}</td>`;
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftsDict[`${m.name}_${ds}`];
                             const isToday = ds === todayStr;
 
                             let cellBg = isToday ? 'bg-orange-50/50' : 'bg-white';
@@ -1089,9 +1095,15 @@
                     const start = new Date(dom.weekStartDateInput.value + 'T00:00:00'); const shifts = getCurrentStoreShifts();
                     const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
 
+                    // ⚡ Bolt: Pre-compute user shifts map for O(1) lookups
+                    const userShiftsDict = {};
+                    shifts.forEach(sh => {
+                        if (sh.name === name) userShiftsDict[sh.date] = sh;
+                    });
+
                     for (let i = 0; i < count; i++) {
                         const d = new Date(start); d.setDate(start.getDate() + i); const ds = getLocalYMD(d);
-                        const s = shifts.find(sh => sh.name === name && sh.date === ds);
+                        const s = userShiftsDict[ds];
                         const row = document.createElement('div'); row.className = 'flex items-center gap-2 p-1 bg-gray-800 rounded'; row.dataset.date = ds;
                         row.innerHTML = `
                         <input type="checkbox" ${s ? 'checked' : ''} class="w-4 h-4">
@@ -1197,6 +1209,15 @@
                     const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
                     const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
 
+                    // ⚡ Bolt: Pre-compute dictionary for O(1) loop lookups and grouped shifts for earnings
+                    const shiftsDict = {};
+                    const memberShifts = {};
+                    shifts.forEach(sh => {
+                        shiftsDict[`${sh.name}_${sh.date}`] = sh;
+                        if (!memberShifts[sh.name]) memberShifts[sh.name] = [];
+                        memberShifts[sh.name].push(sh);
+                    });
+
                     let headRow = ['Employee'];
                     for (let i = 0; i < count; i++) { const d = new Date(sDate); d.setDate(sDate.getDate() + i); headRow.push(d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })); }
 
@@ -1204,7 +1225,7 @@
                         const row = [m.name];
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftsDict[`${m.name}_${ds}`];
                             row.push(s ? `${s.startTime}-${s.endTime}` : '');
                         }
                         return row;
@@ -1214,7 +1235,8 @@
 
                     const earn = members.map(m => {
                         let cost = 0;
-                        shifts.filter(s => s.name === m.name).forEach(s => {
+                        const mShifts = memberShifts[m.name] || [];
+                        mShifts.forEach(s => {
                             const d = new Date(s.date + 'T00:00:00');
                             if (d >= sDate && d < new Date(sDate).setDate(sDate.getDate() + count)) cost += calculateShiftPay(parseFloat(s.duration), s.date);
                         });
