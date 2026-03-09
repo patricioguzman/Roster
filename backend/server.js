@@ -174,8 +174,18 @@ app.post('/api/members', authenticateToken, async (req, res) => {
             const result = await tx.run('INSERT INTO members (name, phone, email, employment_type) VALUES (?, ?, ?, ?)', [name, phone || '', email || '', empType]);
             memberId = result.insertId;
             if (storeIds && Array.isArray(storeIds)) {
-                for (let storeId of storeIds) {
-                    await tx.run('INSERT INTO member_stores (member_id, store_id) VALUES (?, ?)', [memberId, storeId]);
+                // ⚡ Bolt: Use chunked bulk insertion for member_stores to prevent N+1 queries
+                const chunkSize = 100;
+                for (let i = 0; i < storeIds.length; i += chunkSize) {
+                    const chunk = storeIds.slice(i, i + chunkSize);
+                    if (chunk.length === 0) continue;
+
+                    const placeholders = chunk.map(() => '(?, ?)').join(', ');
+                    const params = [];
+                    for (const storeId of chunk) {
+                        params.push(memberId, storeId);
+                    }
+                    await tx.run(`INSERT INTO member_stores (member_id, store_id) VALUES ${placeholders}`, params);
                 }
             }
         });
@@ -203,8 +213,19 @@ app.put('/api/members/:id', authenticateToken, async (req, res) => {
             }
             if (storeIds && Array.isArray(storeIds)) {
                 await tx.run('DELETE FROM member_stores WHERE member_id = ?', [memberId]);
-                for (let storeId of storeIds) {
-                    await tx.run('INSERT INTO member_stores (member_id, store_id) VALUES (?, ?)', [memberId, storeId]);
+                // ⚡ Bolt: Use chunked bulk insertion for member_stores to prevent N+1 queries
+                const chunkSize = 100;
+                for (let i = 0; i < storeIds.length; i += chunkSize) {
+                    const chunk = storeIds.slice(i, i + chunkSize);
+                    if (chunk.length === 0) continue;
+
+                    const placeholders = chunk.map(() => "(?, ?)").join(", ");
+                    const params = [];
+                    for (const storeId of chunk) {
+                        params.push(memberId, storeId);
+                    }
+                    await tx.run(`INSERT INTO member_stores (member_id, store_id) VALUES ${placeholders}`, params);
+
                 }
             }
         });
