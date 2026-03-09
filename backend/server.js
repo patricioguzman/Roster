@@ -47,6 +47,7 @@ app.post('/api/auth/login', async (req, res) => {
             res.status(401).json({ error: 'Invalid credentials' });
         }
     } catch (err) {
+        console.error('Login error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
