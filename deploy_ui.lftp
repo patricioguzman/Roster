@@ -1,4 +1,4 @@
-open -u 'bypat.com.au_2pxecwmrk9o','q4of7G6~hffFTwb!' ftp://178.32.171.58
+open -u "$FTP_USER","$FTP_PASS" "ftp://$FTP_HOST"
 set ssl:verify-certificate no
 cd roster.bypat.com.au
 mirror -R public/ public/
