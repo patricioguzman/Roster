@@ -37,16 +37,15 @@ async function fixData() {
 
         // Also fix shifts (shifts table might have wrong store_id)
         // Wait, did shifts get migrated wrongly too? YES!
-        console.log("Truncating remote shifts to prevent duplicates/errors...");
-        await p.query("TRUNCATE TABLE shifts");
+        // Instead of truncating, we update the existing shifts to not destroy new data
+        console.log("Fixing remote shifts store_id...");
 
-        const localShifts = await getSqliteData("SELECT * FROM shifts");
-        console.log(`Re-assigning ${localShifts.length} shifts...`);
+        const localShifts = await getSqliteData("SELECT id, store_id FROM shifts");
+        console.log(`Re-assigning store_id for ${localShifts.length} shifts...`);
         for (const s of localShifts) {
             const remoteStoreId = idMapping[s.store_id];
             if (remoteStoreId) {
-                await p.execute("INSERT IGNORE INTO shifts (id, store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    [s.id, remoteStoreId, s.member_id, s.member_name, s.date, s.start_time, s.end_time, s.duration]);
+                await p.execute("UPDATE shifts SET store_id = ? WHERE id = ?", [remoteStoreId, s.id]);
             }
         }
 
