@@ -1,3 +1,3 @@
-## 2024-05-18 - [Parallelized Data Fetching]
-**Learning:** The `/api/data` endpoint, which is the primary data loader for the frontend, fetches settings, stores, members, and shifts sequentially. For MySQL (which the app supports via connection pooling), this creates cumulative network latency.
-**Action:** Use `Promise.all` to parallelize independent read queries, taking full advantage of MySQL connection pooling or offloading concurrent tasks cleanly in SQLite.
+## 2024-05-18 - Optimize member_stores inserts to avoid N+1 queries
+**Learning:** Inserting into associative tables one-by-one via loops inside a transaction leads to O(N) database calls, which is a classic N+1 performance bottleneck.
+**Action:** Always use chunked bulk insertion when creating multiple associative records at once (e.g. `INSERT INTO table (a, b) VALUES (?, ?), (?, ?)...`). This dramatically reduces the number of database roundtrips while respecting query size limits (by chunking).
