@@ -329,11 +329,71 @@ app.post('/api/paypal/subscription/create', authenticateToken, async (req, res) 
     }
 });
 
-// PayPal Webhook Placeholder
-app.post('/api/paypal/webhook', (req, res) => {
-    // Placholder. Verify signature logic would go here if PAYPAL_WEBHOOK_ID is set
-    console.log('Received PayPal Webhook:', req.body?.event_type);
-    res.status(200).send('OK');
+// PayPal Webhook Verification
+app.post('/api/paypal/webhook', async (req, res) => {
+    try {
+        const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+        const clientId = process.env.PAYPAL_CLIENT_ID;
+        const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+
+        if (!webhookId || !clientId || !clientSecret) {
+            console.error('PayPal Webhook configuration missing');
+            return res.status(500).json({ error: 'Webhook configuration missing' });
+        }
+
+        const isLive = process.env.PAYPAL_ENV !== 'sandbox';
+        const baseUrl = isLive ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+
+        // 1. Get OAuth Token
+        const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+        const tokenReq = await fetch(`${baseUrl}/v1/oauth2/token`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${auth}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'grant_type=client_credentials'
+        });
+        const tokenData = await tokenReq.json();
+
+        if (!tokenReq.ok) {
+            throw new Error(`PayPal Auth Error: ${tokenData.error_description || 'Failed to authenticate'}`);
+        }
+
+        const accessToken = tokenData.access_token;
+
+        // 2. Verify Webhook Signature
+        const verifyReq = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                auth_algo: req.headers['paypal-auth-algo'],
+                cert_url: req.headers['paypal-cert-url'],
+                transmission_id: req.headers['paypal-transmission-id'],
+                transmission_sig: req.headers['paypal-transmission-sig'],
+                transmission_time: req.headers['paypal-transmission-time'],
+                webhook_id: webhookId,
+                webhook_event: req.body
+            })
+        });
+
+        const verifyData = await verifyReq.json();
+
+        if (verifyData.verification_status !== 'SUCCESS') {
+            console.warn('PayPal Webhook Verification Failed:', verifyData);
+            return res.status(400).json({ error: 'Webhook verification failed' });
+        }
+
+        // 3. Process the verified webhook event
+        console.log('Received and verified PayPal Webhook:', req.body?.event_type);
+        res.status(200).send('OK');
+    } catch (err) {
+        console.error('PayPal Webhook Error:', err);
+        res.status(500).json({ error: 'Internal Server Error processing webhook' });
+    }
 });
 
 if (require.main === module) {
