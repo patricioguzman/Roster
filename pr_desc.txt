@@ -1,0 +1,9 @@
+🎯 **What:** The untested endpoint `DELETE /api/members/:id` in `backend/server.js` was lacking any test coverage. This gap is now addressed by implementing a Jest and supertest based test suite.
+
+📊 **Coverage:** The test file `backend/tests/delete_member.test.js` covers the following scenarios:
+- **Happy Path:** Correct handling of valid deletion returning a success message and affected rows.
+- **Edge Cases:** Member not found (handles database response correctly).
+- **Authentication Rules:** Missing or invalid tokens (validates 401 and 403 responses).
+- **Error Conditions:** Database error gracefully handled returning a 500 response without crashing the server.
+
+✨ **Result:** Test coverage improved for members API, verifying critical DB operation stability and expected token-based access enforcement.
