@@ -270,8 +270,7 @@ app.get('/api/config/public', (req, res) => {
     });
 });
 
-// Create PayPal Subscription
-app.post('/api/paypal/subscription/create', authenticateToken, async (req, res) => {
+const createPayPalSubscription = async (req, res) => {
     try {
         const { planId } = req.body;
         if (!planId) return res.status(400).json({ error: 'planId is required' });
@@ -327,7 +326,10 @@ app.post('/api/paypal/subscription/create', authenticateToken, async (req, res) 
         console.error('PayPal Subscription Error:', err);
         res.status(500).json({ error: err.message });
     }
-});
+};
+
+// Create PayPal Subscription
+app.post('/api/paypal/subscription/create', authenticateToken, createPayPalSubscription);
 
 // PayPal Webhook Placeholder
 app.post('/api/paypal/webhook', (req, res) => {
@@ -340,4 +342,4 @@ if (require.main === module) {
     app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
 }
 
-module.exports = { app, authenticateToken };
+module.exports = { app, authenticateToken, createPayPalSubscription };
