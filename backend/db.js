@@ -160,4 +160,6 @@ const dbAPI = {
     }
 };
 
+dbAPI.checkAdmin = checkAdmin;
+
 module.exports = dbAPI;
