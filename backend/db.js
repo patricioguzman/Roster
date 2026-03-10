@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
+const { adaptQuery } = require('./dbUtils');
 
 const isMysql = process.env.DB_TYPE === 'mysql';
 
@@ -30,15 +31,6 @@ if (isMysql) {
     });
 }
 
-// Convert SQLite queries to MySQL syntax if needed
-function adaptQuery(query) {
-    if (isMysql) {
-        query = query.replace(/AUTOINCREMENT/ig, 'AUTO_INCREMENT');
-        query = query.replace(/INSERT OR REPLACE INTO/ig, 'REPLACE INTO');
-        query = query.replace(/INSERT OR IGNORE INTO/ig, 'INSERT IGNORE INTO');
-    }
-    return query;
-}
 
 async function initMysql() {
     const queries = [
@@ -79,22 +71,22 @@ const dbAPI = {
     // Execute a query and return all rows
     query: async (sql, params = []) => {
         if (isMysql) {
-            const [rows] = await mysqlPool.query(adaptQuery(sql), params);
+            const [rows] = await mysqlPool.query(adaptQuery(sql, isMysql), params);
             return rows;
         } else {
             return new Promise((resolve, reject) => {
-                sqliteDb.all(adaptQuery(sql), params, (err, rows) => err ? reject(err) : resolve(rows));
+                sqliteDb.all(adaptQuery(sql, isMysql), params, (err, rows) => err ? reject(err) : resolve(rows));
             });
         }
     },
     // Execute a query and return the first row
     get: async (sql, params = []) => {
         if (isMysql) {
-            const [rows] = await mysqlPool.query(adaptQuery(sql), params);
+            const [rows] = await mysqlPool.query(adaptQuery(sql, isMysql), params);
             return rows[0] || null;
         } else {
             return new Promise((resolve, reject) => {
-                sqliteDb.get(adaptQuery(sql), params, (err, row) => err ? reject(err) : resolve(row || null));
+                sqliteDb.get(adaptQuery(sql, isMysql), params, (err, row) => err ? reject(err) : resolve(row || null));
             });
         }
     },
@@ -107,11 +99,11 @@ const dbAPI = {
                 sql = sql.replace('WHERE key = ?', 'WHERE key_name = ?');
             }
 
-            const [result] = await mysqlPool.query(adaptQuery(sql), params);
+            const [result] = await mysqlPool.query(adaptQuery(sql, isMysql), params);
             return { insertId: result.insertId, changes: result.affectedRows };
         } else {
             return new Promise((resolve, reject) => {
-                sqliteDb.run(adaptQuery(sql), params, function (err) {
+                sqliteDb.run(adaptQuery(sql, isMysql), params, function (err) {
                     if (err) reject(err);
                     else resolve({ insertId: this.lastID, changes: this.changes });
                 });
@@ -126,11 +118,11 @@ const dbAPI = {
             try {
                 // Return a special interface that binds queries to this specific connection
                 const txAPI = {
-                    query: async (s, p = []) => { const [rows] = await connection.query(adaptQuery(s), p); return rows; },
-                    get: async (s, p = []) => { const [rows] = await connection.query(adaptQuery(s), p); return rows[0] || null; },
+                    query: async (s, p = []) => { const [rows] = await connection.query(adaptQuery(s, isMysql), p); return rows; },
+                    get: async (s, p = []) => { const [rows] = await connection.query(adaptQuery(s, isMysql), p); return rows[0] || null; },
                     run: async (s, p = []) => {
                         if (s.includes('settings (key, value)')) s = s.replace('settings (key, value)', 'settings (key_name, value)');
-                        const [res] = await connection.query(adaptQuery(s), p);
+                        const [res] = await connection.query(adaptQuery(s, isMysql), p);
                         return { insertId: res.insertId, changes: res.affectedRows };
                     }
                 };
