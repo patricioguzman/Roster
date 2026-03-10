@@ -2,6 +2,8 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
+const { adaptQueryForMysql } = require('./dbUtils');
+
 
 const isMysql = process.env.DB_TYPE === 'mysql';
 
@@ -33,9 +35,7 @@ if (isMysql) {
 // Convert SQLite queries to MySQL syntax if needed
 function adaptQuery(query) {
     if (isMysql) {
-        query = query.replace(/AUTOINCREMENT/ig, 'AUTO_INCREMENT');
-        query = query.replace(/INSERT OR REPLACE INTO/ig, 'REPLACE INTO');
-        query = query.replace(/INSERT OR IGNORE INTO/ig, 'INSERT IGNORE INTO');
+        return adaptQueryForMysql(query);
     }
     return query;
 }
