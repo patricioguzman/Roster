@@ -177,10 +177,11 @@ app.post('/api/members', authenticateToken, async (req, res) => {
         await db.transaction(async (tx) => {
             const result = await tx.run('INSERT INTO members (name, phone, email, employment_type) VALUES (?, ?, ?, ?)', [name, phone || '', email || '', empType]);
             memberId = result.insertId;
-            if (storeIds && Array.isArray(storeIds)) {
-                for (let storeId of storeIds) {
-                    await tx.run('INSERT INTO member_stores (member_id, store_id) VALUES (?, ?)', [memberId, storeId]);
-                }
+            if (storeIds && Array.isArray(storeIds) && storeIds.length > 0) {
+                // ⚡ Bolt: Use bulk INSERT to avoid N+1 query latency
+                const placeholders = storeIds.map(() => '(?, ?)').join(', ');
+                const values = storeIds.flatMap(storeId => [memberId, storeId]);
+                await tx.run(`INSERT INTO member_stores (member_id, store_id) VALUES ${placeholders}`, values);
             }
         });
         res.json({ id: memberId, storeIds: storeIds || [], name, phone, email, employmentType: empType });
@@ -207,8 +208,11 @@ app.put('/api/members/:id', authenticateToken, async (req, res) => {
             }
             if (storeIds && Array.isArray(storeIds)) {
                 await tx.run('DELETE FROM member_stores WHERE member_id = ?', [memberId]);
-                for (let storeId of storeIds) {
-                    await tx.run('INSERT INTO member_stores (member_id, store_id) VALUES (?, ?)', [memberId, storeId]);
+                if (storeIds.length > 0) {
+                    // ⚡ Bolt: Use bulk INSERT to avoid N+1 query latency
+                    const placeholders = storeIds.map(() => '(?, ?)').join(', ');
+                    const values = storeIds.flatMap(storeId => [memberId, storeId]);
+                    await tx.run(`INSERT INTO member_stores (member_id, store_id) VALUES ${placeholders}`, values);
                 }
             }
         });
