@@ -1138,17 +1138,29 @@
                 }
 
                 let shiftAutoSaveTimeout;
-                async function saveWeekShifts(isAuto = false) {
-                    const name = dom.staffNameSelect.value; if (!name) return;
-                    const repeatCount = parseInt(document.getElementById('repeatWeeksSelect')?.value) || 0;
 
-                    const items = [], delIds = [], current = getCurrentStoreShifts().filter(s => s.name === name);
+                function extractShiftsFromUI(name, repeatCount, current) {
+                    const items = [];
+                    const delIds = [];
+
                     dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
-                        const ds = row.dataset.date, cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]'), existing = current.find(s => s.date === ds);
+                        const ds = row.dataset.date;
+                        const cb = row.querySelector('input[type="checkbox"]');
+                        const inputs = row.querySelectorAll('input[type="time"]');
+                        const existing = current.find(s => s.date === ds);
+
                         if (cb.checked && inputs[0].value && inputs[1].value) {
                             const dur = (new Date(`2000-01-01T${inputs[1].value}`) - new Date(`2000-01-01T${inputs[0].value}`)) / 3600000;
                             if (dur > 0) {
-                                items.push({ id: existing ? existing.id : `new_${Date.now()}_0_${ds}`, name, date: ds, startTime: inputs[0].value, endTime: inputs[1].value, duration: dur.toFixed(2), storeId: appData.currentStoreId });
+                                items.push({
+                                    id: existing ? existing.id : `new_${Date.now()}_0_${ds}`,
+                                    name,
+                                    date: ds,
+                                    startTime: inputs[0].value,
+                                    endTime: inputs[1].value,
+                                    duration: dur.toFixed(2),
+                                    storeId: appData.currentStoreId
+                                });
 
                                 // Generate future repeating shifts
                                 for (let w = 1; w <= repeatCount; w++) {
@@ -1156,15 +1168,39 @@
                                     nextDate.setDate(nextDate.getDate() + (w * 7));
                                     let nextDs = getLocalYMD(nextDate);
                                     let futureExisting = current.find(s => s.date === nextDs);
-                                    items.push({ id: futureExisting ? futureExisting.id : `new_${Date.now()}_${w}_${ds}`, name, date: nextDs, startTime: inputs[0].value, endTime: inputs[1].value, duration: dur.toFixed(2), storeId: appData.currentStoreId });
+                                    items.push({
+                                        id: futureExisting ? futureExisting.id : `new_${Date.now()}_${w}_${ds}`,
+                                        name,
+                                        date: nextDs,
+                                        startTime: inputs[0].value,
+                                        endTime: inputs[1].value,
+                                        duration: dur.toFixed(2),
+                                        storeId: appData.currentStoreId
+                                    });
                                 }
                             }
-                        } else if (existing) delIds.push(existing.id);
+                        } else if (existing) {
+                            delIds.push(existing.id);
+                        }
                     });
+
+                    return { items, delIds };
+                }
+
+                async function saveShiftsToBackend(items, delIds, isAuto) {
                     const token = localStorage.getItem('token');
-                    fetch('/api/shifts/week', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ saveShifts: items, deleteShifts: delIds }) }).then(() => {
-                        if (!isAuto && document.getElementById('repeatWeeksSelect')) document.getElementById('repeatWeeksSelect').value = "0";
-                        fetch('/api/data').then(res => res.json()).then(data => {
+                    return fetch('/api/shifts/week', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ saveShifts: items, deleteShifts: delIds })
+                    }).then(() => {
+                        if (!isAuto && document.getElementById('repeatWeeksSelect')) {
+                            document.getElementById('repeatWeeksSelect').value = "0";
+                        }
+                        return fetch('/api/data').then(res => res.json()).then(data => {
                             appData = { ...appData, ...data };
                             if (!isAuto) renderWeeklyEditor();
                             updateCalendarView();
@@ -1172,6 +1208,18 @@
                             if (isAuto && items.length > 0) showToast('Shifts saved auto');
                         });
                     });
+                }
+
+                async function saveWeekShifts(isAuto = false) {
+                    const name = dom.staffNameSelect.value;
+                    if (!name) return;
+
+                    const repeatCount = parseInt(document.getElementById('repeatWeeksSelect')?.value) || 0;
+                    const current = getCurrentStoreShifts().filter(s => s.name === name);
+
+                    const { items, delIds } = extractShiftsFromUI(name, repeatCount, current);
+
+                    await saveShiftsToBackend(items, delIds, isAuto);
                 }
 
                 function enterAdminMode() {
