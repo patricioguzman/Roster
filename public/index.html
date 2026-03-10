@@ -973,6 +973,15 @@
                     const empNameColWidth = isFortnight ? 'min-w-[100px] text-xs' : 'min-w-[140px] text-sm';
                     const shiftTextSize = isFortnight ? 'text-[9px] md:text-[11px]' : 'text-xs';
 
+                    // ⚡ Bolt: Pre-compute hash map of shifts to replace O(N^2) array search inside the rendering loop.
+                    // This achieves O(1) lookups and significantly reduces UI blocking latency for large datasets.
+                    const shiftsMap = {};
+                    shifts.forEach(s => {
+                        if (!shiftsMap[`${s.name}_${s.date}`]) {
+                            shiftsMap[`${s.name}_${s.date}`] = s; // Preserve original .find() "first match" behavior
+                        }
+                    });
+
                     let table = `<table id="schedule-table" class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;"><thead class="bg-gray-50"><tr><th class="sticky left-0 bg-gray-50 z-10 ${cellPadding} border-r ${empNameColWidth}">Employee</th>`;
                     for (let i = 0; i < count; i++) {
                         const d = new Date(sDate); d.setDate(sDate.getDate() + i);
@@ -986,7 +995,7 @@
                         table += `<tr class="employee-row cursor-pointer transition-colors ${isSelected ? 'bg-orange-100 border-orange-400 border-2' : 'hover:bg-gray-50'}" data-row-name="${m.name}"><td class="sticky left-0 ${isSelected ? 'bg-orange-100' : 'bg-white'} z-10 ${cellPadding} border-r font-bold text-gray-900 cell-name truncate ${empNameColWidth}" data-name="${m.name}" title="${m.name}">${m.name}</td>`;
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftsMap[`${m.name}_${ds}`];
                             const isToday = ds === todayStr;
 
                             let cellBg = isToday ? 'bg-orange-50/50' : 'bg-white';
@@ -1089,9 +1098,17 @@
                     const start = new Date(dom.weekStartDateInput.value + 'T00:00:00'); const shifts = getCurrentStoreShifts();
                     const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
 
+                    // ⚡ Bolt: Hash map lookup reduces editor render time from O(N*Days) to O(1)
+                    const shiftsMap = {};
+                    shifts.forEach(s => {
+                        if (!shiftsMap[`${s.name}_${s.date}`]) {
+                            shiftsMap[`${s.name}_${s.date}`] = s;
+                        }
+                    });
+
                     for (let i = 0; i < count; i++) {
                         const d = new Date(start); d.setDate(start.getDate() + i); const ds = getLocalYMD(d);
-                        const s = shifts.find(sh => sh.name === name && sh.date === ds);
+                        const s = shiftsMap[`${name}_${ds}`];
                         const row = document.createElement('div'); row.className = 'flex items-center gap-2 p-1 bg-gray-800 rounded'; row.dataset.date = ds;
                         row.innerHTML = `
                         <input type="checkbox" ${s ? 'checked' : ''} class="w-4 h-4">
@@ -1143,8 +1160,16 @@
                     const repeatCount = parseInt(document.getElementById('repeatWeeksSelect')?.value) || 0;
 
                     const items = [], delIds = [], current = getCurrentStoreShifts().filter(s => s.name === name);
+                    // ⚡ Bolt: Hash map lookup replaces O(N^2) search during save operations.
+                    const currentMap = {};
+                    current.forEach(s => {
+                        if (!currentMap[s.date]) {
+                            currentMap[s.date] = s;
+                        }
+                    });
+
                     dom.weeklyEditorContainer.querySelectorAll('div[data-date]').forEach(row => {
-                        const ds = row.dataset.date, cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]'), existing = current.find(s => s.date === ds);
+                        const ds = row.dataset.date, cb = row.querySelector('input[type="checkbox"]'), inputs = row.querySelectorAll('input[type="time"]'), existing = currentMap[ds];
                         if (cb.checked && inputs[0].value && inputs[1].value) {
                             const dur = (new Date(`2000-01-01T${inputs[1].value}`) - new Date(`2000-01-01T${inputs[0].value}`)) / 3600000;
                             if (dur > 0) {
@@ -1155,7 +1180,7 @@
                                     let nextDate = new Date(ds + 'T00:00:00');
                                     nextDate.setDate(nextDate.getDate() + (w * 7));
                                     let nextDs = getLocalYMD(nextDate);
-                                    let futureExisting = current.find(s => s.date === nextDs);
+                                    let futureExisting = currentMap[nextDs];
                                     items.push({ id: futureExisting ? futureExisting.id : `new_${Date.now()}_${w}_${ds}`, name, date: nextDs, startTime: inputs[0].value, endTime: inputs[1].value, duration: dur.toFixed(2), storeId: appData.currentStoreId });
                                 }
                             }
@@ -1197,6 +1222,14 @@
                     const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
                     const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
 
+                    // ⚡ Bolt: Use O(1) hash map instead of O(N^2) array search for rapid PDF generation.
+                    const shiftsMap = {};
+                    shifts.forEach(s => {
+                        if (!shiftsMap[`${s.name}_${s.date}`]) {
+                            shiftsMap[`${s.name}_${s.date}`] = s;
+                        }
+                    });
+
                     let headRow = ['Employee'];
                     for (let i = 0; i < count; i++) { const d = new Date(sDate); d.setDate(sDate.getDate() + i); headRow.push(d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })); }
 
@@ -1204,7 +1237,7 @@
                         const row = [m.name];
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftsMap[`${m.name}_${ds}`];
                             row.push(s ? `${s.startTime}-${s.endTime}` : '');
                         }
                         return row;
