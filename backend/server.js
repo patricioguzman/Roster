@@ -47,6 +47,7 @@ app.post('/api/auth/login', async (req, res) => {
             res.status(401).json({ error: 'Invalid credentials' });
         }
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -93,7 +94,8 @@ app.get('/api/data', async (req, res) => {
 
         res.json(data);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -108,7 +110,8 @@ app.put('/api/settings', authenticateToken, async (req, res) => {
         });
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -121,7 +124,8 @@ app.post('/api/stores', authenticateToken, async (req, res) => {
         const result = await db.run('INSERT INTO stores (name, max_hours) VALUES (?, ?)', [name, hours]);
         res.json({ id: result.insertId, name, maxHours: hours });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -147,7 +151,8 @@ app.put('/api/stores/:id', authenticateToken, async (req, res) => {
         const result = await db.run(query, params);
         res.json({ success: true, updated: result.changes });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -160,7 +165,8 @@ app.delete('/api/stores/:id', authenticateToken, async (req, res) => {
         });
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -181,7 +187,8 @@ app.post('/api/members', authenticateToken, async (req, res) => {
         });
         res.json({ id: memberId, storeIds: storeIds || [], name, phone, email, employmentType: empType });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -210,7 +217,8 @@ app.put('/api/members/:id', authenticateToken, async (req, res) => {
         });
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -219,7 +227,8 @@ app.delete('/api/members/:id', authenticateToken, async (req, res) => {
         const result = await db.run('DELETE FROM members WHERE id = ?', [req.params.id]);
         res.json({ success: true, deleted: result.changes });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -255,7 +264,8 @@ app.post('/api/shifts/week', authenticateToken, async (req, res) => {
         });
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -325,7 +335,7 @@ app.post('/api/paypal/subscription/create', authenticateToken, async (req, res) 
         res.json({ approvalUrl: approveLink.href, subscriptionId: subData.id });
     } catch (err) {
         console.error('PayPal Subscription Error:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
