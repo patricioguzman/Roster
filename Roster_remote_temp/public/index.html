@@ -837,10 +837,21 @@
                         </div>
 
                         <div
-                            class="p-4 border border-orange-500/30 rounded-xl bg-orange-900/10 flex flex-col gap-2 relative overflow-hidden group admin-only">
-                            <h4 class="font-bold text-orange-400 text-lg">Consolidated Fortnightly</h4>
-                            <p class="text-sm text-gray-400">Admin only. Download the 14-day consolidated spreadsheet
-                                across all stores.</p>
+                            class="p-4 border border-orange-500/30 rounded-xl bg-orange-900/10 flex flex-col gap-2 relative overflow-visible group">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-orange-400 text-lg">Consolidated Fortnightly</h4>
+                                <div class="group/tooltip relative flex items-center justify-center">
+                                    <i data-lucide="help-circle" class="w-4 h-4 text-orange-400/70 hover:text-orange-400 cursor-help transition"></i>
+                                    <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-gray-900 border border-gray-700 text-xs text-gray-300 rounded-lg shadow-2xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none">
+                                        <p class="font-bold text-white mb-1 text-sm border-b border-gray-700 pb-1">What does this do?</p>
+                                        <ul class="list-disc pl-3 space-y-1 mt-2">
+                                            <li><strong class="text-orange-400">Download Fortnightly:</strong> Exports the official 14-day template for Leon with all hours calculated automatically.</li>
+                                            <li><strong class="text-red-400">Close Period:</strong> Blocks the selected 14 days so nobody can edit or upload more hours. Use this after sending the final file.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-400">Download the official 14-day Excel template across all your managed stores.</p>
                             <div class="flex gap-2.5 mt-2">
                                 <button id="downloadFortnightlyBtn"
                                     class="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition shadow-lg flex items-center justify-center gap-2"><i
@@ -954,8 +965,8 @@
                     }).catch(e => console.error('Data load error:', e));
                 }
 
-                const getCurrentStoreMembers = () => appData.members.filter(m => m.storeIds && m.storeIds.includes(appData.currentStoreId));
-                const getCurrentStoreShifts = () => appData.shifts.filter(s => s.storeId === appData.currentStoreId);
+                const getCurrentStoreMembers = () => appData.members.filter(m => m.storeIds && m.storeIds.some(id => parseInt(id) === parseInt(appData.currentStoreId)));
+                const getCurrentStoreShifts = () => appData.shifts.filter(s => parseInt(s.storeId) === parseInt(appData.currentStoreId));
 
                 function showToast(msg, isErr = false) {
                     dom.toastMessage.textContent = msg; dom.toast.classList.remove('bg-green-500', 'bg-red-500');
@@ -1094,6 +1105,13 @@
                 }
 
                 function updateAllViews() {
+                    dom.storeSelector.innerHTML = appData.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                    dom.storeSelector.value = appData.currentStoreId;
+                    if (dom.editorStoreSelector) {
+                        dom.editorStoreSelector.innerHTML = dom.storeSelector.innerHTML;
+                        dom.editorStoreSelector.value = appData.currentStoreId;
+                    }
+
                     const nameSelect = dom.staffNameSelect; const cur = nameSelect.value;
                     const members = getCurrentStoreMembers();
                     if (members.length === 0) {
@@ -1103,12 +1121,6 @@
                     }
                     nameSelect.value = cur;
                     dom.employeeSelectForDownload.innerHTML = nameSelect.innerHTML;
-                    dom.storeSelector.innerHTML = appData.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-                    dom.storeSelector.value = appData.currentStoreId;
-                    if (dom.editorStoreSelector) {
-                        dom.editorStoreSelector.innerHTML = dom.storeSelector.innerHTML;
-                        dom.editorStoreSelector.value = appData.currentStoreId;
-                    }
 
                     // Update Total Hours Label based on view
                     const lbl = document.getElementById('total-hours-label');
@@ -1403,6 +1415,10 @@
                 }
 
                 // Events
+                document.getElementById('repeatWeeksSelect').addEventListener('change', () => {
+                    saveWeekShifts(true);
+                    showToast('Repeating shifts saved successfully');
+                });
                 dom.loginBtn.addEventListener('click', () => toggleModal(dom.loginModal)); dom.closeLoginModalBtn.addEventListener('click', () => toggleModal(dom.loginModal));
                 dom.loginForm.addEventListener('submit', async (e) => {
                     e.preventDefault();

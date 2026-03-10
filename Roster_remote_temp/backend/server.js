@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const xlsx = require('xlsx');
+const ExcelJS = require('exceljs');
 require('dotenv').config();
 
 const db = require('./db');
@@ -28,10 +29,10 @@ const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (token == null) return res.sendStatus(401);
+    if (token == null) return res.status(401).json({ error: 'Unauthorized' });
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) return res.status(403).json({ error: 'Forbidden' });
         req.user = user;
         next();
     });
@@ -536,6 +537,24 @@ app.get('/api/worked-hours', authenticateToken, async (req, res) => {
         }
 
         const hours = await db.query(query, params);
+
+        // Pre-fill from scheduled shifts if no hours were explicitly saved for this week
+        if (hours.length === 0 && storeId) {
+            const shifts = await db.query('SELECT member_id, date, duration FROM shifts WHERE store_id = ? AND date >= ? AND date <= ?', [storeId, startDate, endDate]);
+            const agg = {};
+            for (let s of shifts) {
+                if (!agg[s.member_id]) {
+                    agg[s.member_id] = { member_id: s.member_id, ordinary_hours: 0, saturday_hours: 0, sunday_hours: 0, ph_hours: 0, al_hours: 0, sl_hours: 0, notes: 'Auto-filled from schedule' };
+                }
+                const d = new Date(s.date + 'T00:00:00'); // Ensure local timezone doesn't shift it
+                const day = d.getDay(); // 0 = Sunday, 6 = Saturday
+                if (day === 0) agg[s.member_id].sunday_hours += parseFloat(s.duration);
+                else if (day === 6) agg[s.member_id].saturday_hours += parseFloat(s.duration);
+                else agg[s.member_id].ordinary_hours += parseFloat(s.duration);
+            }
+            return res.json(Object.values(agg));
+        }
+
         res.json(hours);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -679,16 +698,73 @@ app.get('/api/exports/weekly-report', authenticateToken, async (req, res) => {
 });
 
 // GET EXPORT FORTNIGHTLY REPORT (Consolidated)
-app.get('/api/exports/fortnightly-report', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/exports/fortnightly-report', authenticateToken, async (req, res) => {
     const { startDate, endDate } = req.query;
     try {
-        const hours = await db.query(`
+        let query = `
             SELECT w.*, m.name as employee_name, s.name as store_name 
             FROM worked_hours w 
             JOIN members m ON w.member_id = m.id 
             JOIN stores s ON w.store_id = s.id 
             WHERE w.date >= ? AND w.date <= ?
-        `, [startDate, endDate]);
+        `;
+        let params = [startDate, endDate];
+
+        if (req.user.role !== 'admin') {
+            const allowedStoresData = await db.query('SELECT store_id FROM manager_stores WHERE member_id = ?', [req.user.id]);
+            const allowedStores = allowedStoresData.map(r => r.store_id);
+            if (allowedStores.length === 0) {
+                return res.status(403).json({ error: 'You do not manage any stores' });
+            }
+            query += ` AND w.store_id IN (${allowedStores.map(() => '?').join(',')})`;
+            params.push(...allowedStores);
+        }
+        let hours = await db.query(query, params);
+
+        if (hours.length === 0) {
+            let shiftQuery = `
+                SELECT s.id, s.store_id, s.member_id, s.member_name as employee_name, s.date, s.duration, st.name as store_name
+                FROM shifts s
+                JOIN stores st ON s.store_id = st.id
+                WHERE s.date >= ? AND s.date <= ?
+            `;
+            let shiftParams = [startDate, endDate];
+            
+            if (req.user.role !== 'admin') {
+                const allowedStoresData = await db.query('SELECT store_id FROM manager_stores WHERE member_id = ?', [req.user.id]);
+                const allowedStores = allowedStoresData.map(r => r.store_id);
+                if (allowedStores.length > 0) {
+                    shiftQuery += ` AND s.store_id IN (${allowedStores.map(() => '?').join(',')})`;
+                    shiftParams.push(...allowedStores);
+                }
+            }
+            
+            const rawShifts = await db.query(shiftQuery, shiftParams);
+            const agg = {};
+            for (let rs of rawShifts) {
+                const key = `${rs.store_id}_${rs.member_id}`;
+                if (!agg[key]) {
+                    agg[key] = {
+                        store_id: rs.store_id,
+                        member_id: rs.member_id,
+                        employee_name: rs.employee_name,
+                        store_name: rs.store_name,
+                        ordinary_hours: 0,
+                        saturday_hours: 0,
+                        sunday_hours: 0,
+                        ph_hours: 0,
+                        al_hours: 0,
+                        sl_hours: 0
+                    };
+                }
+                const d = new Date(rs.date + 'T00:00:00');
+                const day = d.getDay();
+                if (day === 0) agg[key].sunday_hours += parseFloat(rs.duration);
+                else if (day === 6) agg[key].saturday_hours += parseFloat(rs.duration);
+                else agg[key].ordinary_hours += parseFloat(rs.duration);
+            }
+            hours = Object.values(agg);
+        }
 
         // Aggregate by individual (across all stores)
         const employeeTotals = {};
@@ -722,18 +798,107 @@ app.get('/api/exports/fortnightly-report', authenticateToken, requireAdmin, asyn
             st['Total Hours'] += (h.ordinary_hours || 0) + (h.saturday_hours || 0) + (h.sunday_hours || 0) + (h.ph_hours || 0) + (h.al_hours || 0) + (h.sl_hours || 0);
         }
 
-        const wb = xlsx.utils.book_new();
+        const wb = new ExcelJS.Workbook();
+        const ws = wb.addWorksheet('Fortnightly Report');
 
-        const wsEmployees = xlsx.utils.json_to_sheet(Object.values(employeeTotals));
-        xlsx.utils.book_append_sheet(wb, wsEmployees, 'Consolidated Individuals');
+        // Styles
+        const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00B0F0' } }; // Light Blue
+        const headerFont = { bold: true };
+        const greenFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6EFCE' } }; // Light Green
+        const borderAll = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+        const centerAlign = { vertical: 'middle', horizontal: 'center' };
 
-        const wsStores = xlsx.utils.json_to_sheet(Object.values(storeTotals));
-        xlsx.utils.book_append_sheet(wb, wsStores, 'Consolidated Stores');
+        // Set Headers Employee Table
+        const empHeaders = ['Employee', 'Ordinary', 'Saturday', 'Sunday', 'PH', 'AL', 'SL'];
+        empHeaders.forEach((h, i) => {
+            const cell = ws.getCell(3, 3 + i); // Column C is 3
+            cell.value = h;
+            cell.fill = headerFill;
+            cell.font = headerFont;
+            cell.border = borderAll;
+            cell.alignment = centerAlign;
+        });
 
-        const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
-        res.setHeader('Content-Disposition', `attachment; filename="Fortnightly_Report_${startDate}.xlsx"`);
+        // Set Headers Store Table
+        const storeHeaders = ['Store', 'Ordinary', 'Saturday', 'Sunday', 'PH', 'AL', 'SL', 'Total Hours'];
+        storeHeaders.forEach((h, i) => {
+            const cell = ws.getCell(3, 12 + i); // Column L is 12
+            cell.value = h;
+            cell.fill = headerFill;
+            cell.font = headerFont;
+            cell.border = borderAll;
+            cell.alignment = centerAlign;
+        });
+
+        // Employee Data
+        let rowIdx = 4;
+        const employees = Object.values(employeeTotals).sort((a,b) => a.Employee.localeCompare(b.Employee));
+        for (const emp of employees) {
+            const rowVals = [emp.Employee, emp.Ordinary, emp.Saturday, emp.Sunday, emp.PH, emp.AL, emp.SL];
+            rowVals.forEach((val, i) => {
+                const cell = ws.getCell(rowIdx, 3 + i);
+                cell.value = val !== 0 ? val : '';
+                cell.border = borderAll;
+                cell.alignment = centerAlign;
+                if (i === 0) {
+                    cell.fill = greenFill; // First col is green
+                }
+            });
+            rowIdx++;
+        }
+
+        // Output minimum empty rows to match template feeling (e.g. at least 30 rows of formatting)
+        let maxEmpRow = Math.max(rowIdx - 1, 33);
+        for(let r = rowIdx; r <= maxEmpRow; r++) {
+            for(let c = 3; c <= 9; c++) {
+                const cell = ws.getCell(r, c);
+                cell.border = borderAll;
+                if (c === 3) cell.fill = greenFill;
+            }
+        }
+
+        // Store Data
+        let storeRowIdx = 4;
+        const stores = Object.values(storeTotals).sort((a,b) => a.Store.localeCompare(b.Store));
+        for (const st of stores) {
+            const rowVals = [st.Store, st.Ordinary, st.Saturday, st.Sunday, st.PH, st.AL, st.SL, st['Total Hours']];
+            rowVals.forEach((val, i) => {
+                const cell = ws.getCell(storeRowIdx, 12 + i);
+                cell.value = val !== 0 ? val : '';
+                cell.border = borderAll;
+                cell.alignment = centerAlign;
+                if (i === 0) {
+                    cell.fill = greenFill;
+                }
+            });
+            storeRowIdx++;
+        }
+        
+        // Output minimum empty rows for stores (e.g. at least 10 rows)
+        let maxStoreRow = Math.max(storeRowIdx - 1, 10);
+        for(let r = storeRowIdx; r <= maxStoreRow; r++) {
+            for(let c = 12; c <= 19; c++) {
+                const cell = ws.getCell(r, c);
+                cell.border = borderAll;
+                if (c === 12) cell.fill = greenFill;
+            }
+        }
+
+        // Adjust column widths
+        ws.getColumn(3).width = 25; // Employee
+        for(let c = 4; c <= 9; c++) ws.getColumn(c).width = 12; // Employee hours
+        
+        ws.getColumn(12).width = 25; // Store
+        for(let c = 13; c <= 19; c++) ws.getColumn(c).width = 12; // Store hours
+
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.send(buffer);
+        res.setHeader('Content-Disposition', `attachment; filename="Fortnightly_Report_${startDate}.xlsx"`);
+        
+        await wb.xlsx.write(res);
+        res.end();
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
