@@ -105,11 +105,14 @@ app.get('/api/data', async (req, res) => {
 app.put('/api/settings', authenticateToken, async (req, res) => {
     const settings = req.body;
     try {
-        await db.transaction(async (tx) => {
-            for (const [key, value] of Object.entries(settings)) {
-                await tx.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, value]);
-            }
-        });
+        const entries = Object.entries(settings);
+        if (entries.length > 0) {
+            await db.transaction(async (tx) => {
+                const placeholders = entries.map(() => '(?, ?)').join(', ');
+                const params = entries.flatMap(([k, v]) => [k, v]);
+                await tx.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ${placeholders}`, params);
+            });
+        }
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
