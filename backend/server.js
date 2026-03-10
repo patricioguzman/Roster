@@ -173,10 +173,13 @@ app.post('/api/members', authenticateToken, async (req, res) => {
         await db.transaction(async (tx) => {
             const result = await tx.run('INSERT INTO members (name, phone, email, employment_type) VALUES (?, ?, ?, ?)', [name, phone || '', email || '', empType]);
             memberId = result.insertId;
-            if (storeIds && Array.isArray(storeIds)) {
+            if (storeIds && Array.isArray(storeIds) && storeIds.length > 0) {
+                const placeholders = storeIds.map(() => '(?, ?)').join(', ');
+                const params = [];
                 for (let storeId of storeIds) {
-                    await tx.run('INSERT INTO member_stores (member_id, store_id) VALUES (?, ?)', [memberId, storeId]);
+                    params.push(memberId, storeId);
                 }
+                await tx.run(`INSERT INTO member_stores (member_id, store_id) VALUES ${placeholders}`, params);
             }
         });
         res.json({ id: memberId, storeIds: storeIds || [], name, phone, email, employmentType: empType });
@@ -203,8 +206,13 @@ app.put('/api/members/:id', authenticateToken, async (req, res) => {
             }
             if (storeIds && Array.isArray(storeIds)) {
                 await tx.run('DELETE FROM member_stores WHERE member_id = ?', [memberId]);
-                for (let storeId of storeIds) {
-                    await tx.run('INSERT INTO member_stores (member_id, store_id) VALUES (?, ?)', [memberId, storeId]);
+                if (storeIds.length > 0) {
+                    const placeholders = storeIds.map(() => '(?, ?)').join(', ');
+                    const params = [];
+                    for (let storeId of storeIds) {
+                        params.push(memberId, storeId);
+                    }
+                    await tx.run(`INSERT INTO member_stores (member_id, store_id) VALUES ${placeholders}`, params);
                 }
             }
         });
