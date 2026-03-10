@@ -838,6 +838,11 @@
 
                     dom.membersList.innerHTML = ms.length ? '' : '<div class="text-sm text-gray-500 py-4 text-center">No members found</div>';
 
+                    const storeMap = {};
+                    if (memberMgmtFilterStoreId === 'all') {
+                        appData.stores.forEach(s => storeMap[s.id] = s);
+                    }
+
                     ms.forEach(m => {
                         const li = document.createElement('li'); li.className = 'bg-gray-800 p-3 rounded flex justify-between items-center';
 
@@ -845,7 +850,7 @@
                         if (memberMgmtFilterStoreId === 'all' && m.storeIds && m.storeIds.length > 0) {
                             badgesHtml = '<div class="flex flex-wrap gap-1 mt-1">';
                             m.storeIds.forEach(sid => {
-                                const st = appData.stores.find(s => s.id === sid);
+                                const st = storeMap[sid];
                                 if (st) badgesHtml += `<span class="bg-gray-900 border border-gray-700 text-[10px] text-gray-400 px-1.5 py-0.5 rounded">${st.name}</span>`;
                             });
                             badgesHtml += '</div>';
