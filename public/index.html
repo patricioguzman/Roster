@@ -981,12 +981,18 @@
                         table += `<th class="${cellPadding} border-r text-center font-bold overflow-hidden ${headerTextSizes} ${isToday ? 'bg-orange-100 text-orange-600 border-t-4 border-t-orange-500' : 'text-gray-500'}">${d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })}${isToday ? ' <br><span class="text-[8px] uppercase font-black tracking-widest text-orange-500">Today</span>' : ''}</th>`;
                     }
                     table += '</tr></thead><tbody class="divide-y divide-gray-200">';
+
+                    const shiftMap = {};
+                    for (const shift of shifts) {
+                        shiftMap[shift.name + '_' + shift.date] = shift;
+                    }
+
                     membersToRender.forEach(m => {
                         const isSelected = dom.staffNameSelect.value === m.name;
                         table += `<tr class="employee-row cursor-pointer transition-colors ${isSelected ? 'bg-orange-100 border-orange-400 border-2' : 'hover:bg-gray-50'}" data-row-name="${m.name}"><td class="sticky left-0 ${isSelected ? 'bg-orange-100' : 'bg-white'} z-10 ${cellPadding} border-r font-bold text-gray-900 cell-name truncate ${empNameColWidth}" data-name="${m.name}" title="${m.name}">${m.name}</td>`;
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftMap[m.name + '_' + ds];
                             const isToday = ds === todayStr;
 
                             let cellBg = isToday ? 'bg-orange-50/50' : 'bg-white';
@@ -1087,11 +1093,15 @@
                     document.getElementById('quick-fill-container').classList.remove('hidden');
 
                     const start = new Date(dom.weekStartDateInput.value + 'T00:00:00'); const shifts = getCurrentStoreShifts();
+                    const shiftMapQuickFill = {};
+                    for (const shift of shifts) {
+                        shiftMapQuickFill[shift.name + '_' + shift.date] = shift;
+                    }
                     const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
 
                     for (let i = 0; i < count; i++) {
                         const d = new Date(start); d.setDate(start.getDate() + i); const ds = getLocalYMD(d);
-                        const s = shifts.find(sh => sh.name === name && sh.date === ds);
+                        const s = shiftMapQuickFill[name + '_' + ds];
                         const row = document.createElement('div'); row.className = 'flex items-center gap-2 p-1 bg-gray-800 rounded'; row.dataset.date = ds;
                         row.innerHTML = `
                         <input type="checkbox" ${s ? 'checked' : ''} class="w-4 h-4">
@@ -1200,11 +1210,16 @@
                     let headRow = ['Employee'];
                     for (let i = 0; i < count; i++) { const d = new Date(sDate); d.setDate(sDate.getDate() + i); headRow.push(d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })); }
 
+                    const shiftMapPDF = {};
+                    for (const shift of shifts) {
+                        shiftMapPDF[shift.name + '_' + shift.date] = shift;
+                    }
+
                     const body = members.map(m => {
                         const row = [m.name];
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftMapPDF[m.name + '_' + ds];
                             row.push(s ? `${s.startTime}-${s.endTime}` : '');
                         }
                         return row;
