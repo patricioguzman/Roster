@@ -36,6 +36,12 @@ function adaptQuery(query) {
         query = query.replace(/AUTOINCREMENT/ig, 'AUTO_INCREMENT');
         query = query.replace(/INSERT OR REPLACE INTO/ig, 'REPLACE INTO');
         query = query.replace(/INSERT OR IGNORE INTO/ig, 'INSERT IGNORE INTO');
+
+        // Need to fix syntax issues for 'settings' table, 'key' is a reserved word in MySQL
+        // Replace 'key' column with 'key_name' in settings table INSERTs, UPDATEs, and SELECTs
+        query = query.replace(/settings\s*\(\s*key\s*,/gi, 'settings (key_name,');
+        query = query.replace(/WHERE\s+key\s*=/gi, 'WHERE key_name =');
+        query = query.replace(/SELECT\s+\*\s+FROM\s+settings/gi, 'SELECT key_name AS "key", value FROM settings');
     }
     return query;
 }
@@ -101,12 +107,6 @@ const dbAPI = {
     // Execute an INSERT/UPDATE/DELETE and return { insertId, changes }
     run: async (sql, params = []) => {
         if (isMysql) {
-            // Need to fix syntax issues for 'settings' table, 'key' is a reserved word in MySQL
-            if (sql.includes('settings (key, value)') || sql.includes('UPDATE settings SET value = ? WHERE key = ?')) {
-                sql = sql.replace('settings (key, value)', 'settings (key_name, value)');
-                sql = sql.replace('WHERE key = ?', 'WHERE key_name = ?');
-            }
-
             const [result] = await mysqlPool.query(adaptQuery(sql), params);
             return { insertId: result.insertId, changes: result.affectedRows };
         } else {
@@ -129,7 +129,6 @@ const dbAPI = {
                     query: async (s, p = []) => { const [rows] = await connection.query(adaptQuery(s), p); return rows; },
                     get: async (s, p = []) => { const [rows] = await connection.query(adaptQuery(s), p); return rows[0] || null; },
                     run: async (s, p = []) => {
-                        if (s.includes('settings (key, value)')) s = s.replace('settings (key, value)', 'settings (key_name, value)');
                         const [res] = await connection.query(adaptQuery(s), p);
                         return { insertId: res.insertId, changes: res.affectedRows };
                     }
@@ -159,5 +158,7 @@ const dbAPI = {
         }
     }
 };
+
+dbAPI.adaptQuery = adaptQuery;
 
 module.exports = dbAPI;
