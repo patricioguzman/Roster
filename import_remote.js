@@ -1,7 +1,6 @@
 const mysql = require('mysql2/promise');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const fs = require('fs');
 
 async function importData() {
     console.log('Connecting to remote MySQL...');
