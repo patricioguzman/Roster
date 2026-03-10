@@ -1197,6 +1197,15 @@
                     const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
                     const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
 
+                    // Pre-group shifts by member name and date for O(1) lookup
+                    const shiftsByNameAndDate = {};
+                    const shiftsByName = {};
+                    shifts.forEach(s => {
+                        shiftsByNameAndDate[`${s.name}_${s.date}`] = s;
+                        if (!shiftsByName[s.name]) shiftsByName[s.name] = [];
+                        shiftsByName[s.name].push(s);
+                    });
+
                     let headRow = ['Employee'];
                     for (let i = 0; i < count; i++) { const d = new Date(sDate); d.setDate(sDate.getDate() + i); headRow.push(d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })); }
 
@@ -1204,7 +1213,7 @@
                         const row = [m.name];
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftsByNameAndDate[`${m.name}_${ds}`];
                             row.push(s ? `${s.startTime}-${s.endTime}` : '');
                         }
                         return row;
@@ -1212,11 +1221,14 @@
 
                     doc.autoTable({ head: [headRow], body, theme: 'grid' });
 
+                    const rangeEnd = new Date(sDate);
+                    rangeEnd.setDate(rangeEnd.getDate() + count);
+
                     const earn = members.map(m => {
                         let cost = 0;
-                        shifts.filter(s => s.name === m.name).forEach(s => {
+                        (shiftsByName[m.name] || []).forEach(s => {
                             const d = new Date(s.date + 'T00:00:00');
-                            if (d >= sDate && d < new Date(sDate).setDate(sDate.getDate() + count)) cost += calculateShiftPay(parseFloat(s.duration), s.date);
+                            if (d >= sDate && d < rangeEnd) cost += calculateShiftPay(parseFloat(s.duration), s.date);
                         });
                         return [m.name, m.employmentType === 'full_time' ? 'Salary' : '$' + (appData.settings?.base_rate || 33.19), '$' + cost.toFixed(2)];
                     });
