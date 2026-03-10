@@ -232,9 +232,14 @@ app.post('/api/shifts/week', authenticateToken, async (req, res) => {
     const { saveShifts, deleteShifts } = req.body;
     try {
         await db.transaction(async (tx) => {
-            if (deleteShifts && deleteShifts.length > 0) {
-                const placeholders = deleteShifts.map(() => '?').join(',');
-                await tx.run(`DELETE FROM shifts WHERE id IN (${placeholders})`, deleteShifts);
+            if (deleteShifts && Array.isArray(deleteShifts) && deleteShifts.length > 0) {
+                const validDeleteIds = deleteShifts
+                    .map(id => parseInt(id, 10))
+                    .filter(id => !isNaN(id));
+                if (validDeleteIds.length > 0) {
+                    const placeholders = validDeleteIds.map(() => '?').join(',');
+                    await tx.run(`DELETE FROM shifts WHERE id IN (${placeholders})`, validDeleteIds);
+                }
             }
             if (saveShifts && saveShifts.length > 0) {
                 for (let s of saveShifts) {
