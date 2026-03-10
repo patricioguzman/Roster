@@ -2,6 +2,9 @@ const assert = require('node:assert');
 const { test, mock } = require('node:test');
 const jwt = require('jsonwebtoken');
 
+// Provide a mock secret for testing so the server starts
+process.env.JWT_SECRET = 'test-secret';
+
 // Load the server module which now exports the authenticateToken middleware
 const { authenticateToken } = require('./server');
 
