@@ -986,12 +986,17 @@
                         table += `<th class="${cellPadding} border-r text-center font-bold overflow-hidden ${headerTextSizes} ${isToday ? 'bg-orange-100 text-orange-600 border-t-4 border-t-orange-500' : 'text-gray-500'}">${d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })}${isToday ? ' <br><span class="text-[8px] uppercase font-black tracking-widest text-orange-500">Today</span>' : ''}</th>`;
                     }
                     table += '</tr></thead><tbody class="divide-y divide-gray-200">';
+
+                    // Bolt: Performance Optimization - Pre-compute shift dictionary for O(1) lookups
+                    const shiftMap = new Map();
+                    shifts.forEach(s => shiftMap.set(s.name + '_' + s.date, s));
+
                     membersToRender.forEach(m => {
                         const isSelected = dom.staffNameSelect.value === m.name;
                         table += `<tr class="employee-row cursor-pointer transition-colors ${isSelected ? 'bg-orange-100 border-orange-400 border-2' : 'hover:bg-gray-50'}" data-row-name="${m.name}"><td class="sticky left-0 ${isSelected ? 'bg-orange-100' : 'bg-white'} z-10 ${cellPadding} border-r font-bold text-gray-900 cell-name truncate ${empNameColWidth}" data-name="${m.name}" title="${m.name}">${m.name}</td>`;
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = shiftMap.get(m.name + '_' + ds);
                             const isToday = ds === todayStr;
 
                             let cellBg = isToday ? 'bg-orange-50/50' : 'bg-white';
@@ -1094,9 +1099,13 @@
                     const start = new Date(dom.weekStartDateInput.value + 'T00:00:00'); const shifts = getCurrentStoreShifts();
                     const count = currentView === 'day' ? 1 : currentView === '3-day' ? 3 : currentView === 'fortnight' ? 14 : 7;
 
+                    // Bolt: Performance Optimization - Pre-compute shift dictionary for O(1) lookups
+                    const quickFillShiftMap = new Map();
+                    shifts.forEach(s => quickFillShiftMap.set(s.name + '_' + s.date, s));
+
                     for (let i = 0; i < count; i++) {
                         const d = new Date(start); d.setDate(start.getDate() + i); const ds = getLocalYMD(d);
-                        const s = shifts.find(sh => sh.name === name && sh.date === ds);
+                        const s = quickFillShiftMap.get(name + '_' + ds);
                         const row = document.createElement('div'); row.className = 'flex items-center gap-2 p-1 bg-gray-800 rounded'; row.dataset.date = ds;
                         row.innerHTML = `
                         <input type="checkbox" ${s ? 'checked' : ''} class="w-4 h-4">
@@ -1253,11 +1262,23 @@
                     let headRow = ['Employee'];
                     for (let i = 0; i < count; i++) { const d = new Date(sDate); d.setDate(sDate.getDate() + i); headRow.push(d.toLocaleDateString(currentLang, { weekday: 'short', day: 'numeric' })); }
 
+                    // Bolt: Performance Optimization - Pre-compute shift dictionaries for O(1) lookups
+                    const exportShiftMap = new Map();
+                    const exportMemberShiftsMap = new Map();
+                    shifts.forEach(s => {
+                        exportShiftMap.set(s.name + '_' + s.date, s);
+
+                        if (!exportMemberShiftsMap.has(s.name)) {
+                            exportMemberShiftsMap.set(s.name, []);
+                        }
+                        exportMemberShiftsMap.get(s.name).push(s);
+                    });
+
                     const body = members.map(m => {
                         const row = [m.name];
                         for (let i = 0; i < count; i++) {
                             const d = new Date(sDate); d.setDate(sDate.getDate() + i); const ds = getLocalYMD(d);
-                            const s = shifts.find(sh => sh.name === m.name && sh.date === ds);
+                            const s = exportShiftMap.get(m.name + '_' + ds);
                             row.push(s ? `${s.startTime}-${s.endTime}` : '');
                         }
                         return row;
@@ -1267,7 +1288,8 @@
 
                     const earn = members.map(m => {
                         let cost = 0;
-                        shifts.filter(s => s.name === m.name).forEach(s => {
+                        const mShifts = exportMemberShiftsMap.get(m.name) || [];
+                        mShifts.forEach(s => {
                             const d = new Date(s.date + 'T00:00:00');
                             if (d >= sDate && d < new Date(sDate).setDate(sDate.getDate() + count)) cost += calculateShiftPay(parseFloat(s.duration), s.date);
                         });
