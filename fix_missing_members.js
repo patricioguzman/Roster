@@ -26,6 +26,8 @@ async function fixMembers() {
 
         console.log(`Checking ${localMembers.length} local members against ${remoteMembers.length} remote members...`);
 
+        const memberStoresToInsert = [];
+
         for (const lm of localMembers) {
             let remoteMember = remoteMembers.find(rm => rm.name.toLowerCase() === lm.name.toLowerCase());
 
@@ -43,9 +45,13 @@ async function fixMembers() {
             for (const ms of localStoresForMember) {
                 const remoteStoreId = storeMapping[ms.store_id];
                 if (remoteStoreId) {
-                    await p.execute("INSERT IGNORE INTO member_stores (member_id, store_id) VALUES (?, ?)", [remoteMember.id, remoteStoreId]);
+                    memberStoresToInsert.push([remoteMember.id, remoteStoreId]);
                 }
             }
+        }
+
+        if (memberStoresToInsert.length > 0) {
+            await p.query("INSERT IGNORE INTO member_stores (member_id, store_id) VALUES ?", [memberStoresToInsert]);
         }
 
         console.log("Missing members and their stores assigned successfully.");
