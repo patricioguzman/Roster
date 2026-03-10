@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const isMysql = process.env.DB_TYPE === 'mysql';
 
@@ -67,11 +68,23 @@ function initSqlite() {
 }
 
 async function checkAdmin(dbInterface) {
-    const row = await dbInterface.get('SELECT * FROM admins WHERE username = ?', ['eli']);
-    if (!row) {
-        const hash = await bcrypt.hash('eli123', 10);
-        await dbInterface.run('INSERT INTO admins (username, password_hash) VALUES (?, ?)', ['eli', hash]);
-        console.log('Created default admin: eli / eli123');
+    const row = await dbInterface.get('SELECT COUNT(*) as count FROM admins');
+    // For sqlite count is returned in row['count'] or row['COUNT(*)'], handling both
+    const count = row ? (row.count !== undefined ? row.count : row['COUNT(*)']) : 0;
+
+    if (count === 0) {
+        const username = process.env.INITIAL_ADMIN_USERNAME || 'admin';
+        const password = process.env.INITIAL_ADMIN_PASSWORD || crypto.randomBytes(8).toString('hex');
+
+        const hash = await bcrypt.hash(password, 10);
+        await dbInterface.run('INSERT INTO admins (username, password_hash) VALUES (?, ?)', [username, hash]);
+
+        if (process.env.INITIAL_ADMIN_PASSWORD) {
+            console.log(`Created default admin: ${username} / (password from INITIAL_ADMIN_PASSWORD environment variable)`);
+        } else {
+            console.log(`Created default admin: ${username} / ${password}`);
+            console.log('IMPORTANT: Please save this password. It will not be shown again.');
+        }
     }
 }
 
@@ -159,5 +172,7 @@ const dbAPI = {
         }
     }
 };
+
+dbAPI.checkAdmin = checkAdmin;
 
 module.exports = dbAPI;
