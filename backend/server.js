@@ -72,9 +72,7 @@ app.get('/api/data', async (req, res) => {
         ]);
 
         settingsRows.forEach(row => {
-            // Handle both sqlite "key" and mysql "key_name"
-            const k = row.key_name || row.key;
-            data.settings[k] = row.value;
+            data.settings[row.key] = row.value;
         });
 
         data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
