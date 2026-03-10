@@ -1,0 +1,9 @@
+
+> roster@1.0.0 start
+> node backend/server.js
+
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+Roster Server running on http://localhost:3000
+Connected to the local SQLite database.
+Created default admin: admin / 65c4155ce33573fd
+IMPORTANT: Please save this password. It will not be shown again.
