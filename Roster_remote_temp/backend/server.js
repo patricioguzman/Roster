@@ -720,8 +720,10 @@ app.get('/api/exports/fortnightly-report', authenticateToken, async (req, res) =
             params.push(...allowedStores);
         }
         let hours = await db.query(query, params);
+        console.log(`[EXPORT] Database returned ${hours.length} existing worked_hours rows.`);
 
         if (hours.length === 0) {
+            console.log(`[EXPORT] Falling back to shift calculation for Admin/Manager.`);
             let shiftQuery = `
                 SELECT s.id, s.store_id, s.member_id, s.member_name as employee_name, s.date, s.duration, st.name as store_name
                 FROM shifts s
@@ -740,6 +742,7 @@ app.get('/api/exports/fortnightly-report', authenticateToken, async (req, res) =
             }
             
             const rawShifts = await db.query(shiftQuery, shiftParams);
+            console.log(`[EXPORT] Found ${rawShifts.length} raw shifts to aggregate.`);
             const agg = {};
             for (let rs of rawShifts) {
                 const key = `${rs.store_id}_${rs.member_id}`;

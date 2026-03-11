@@ -959,7 +959,11 @@
                         if (existingStoreId && appData.stores.some(s => s.id === existingStoreId)) {
                             appData.currentStoreId = existingStoreId;
                         } else if (!appData.currentStoreId && appData.stores.length > 0) {
-                            appData.currentStoreId = appData.stores[0].id;
+                            if (appData.user && appData.user.role === 'manager' && appData.currentUserManagedStoreIds && appData.currentUserManagedStoreIds.length > 0) {
+                                appData.currentStoreId = appData.currentUserManagedStoreIds[0];
+                            } else {
+                                appData.currentStoreId = appData.stores[0].id;
+                            }
                         }
                         renderEngineRules(); updateAllViews();
                     }).catch(e => console.error('Data load error:', e));
