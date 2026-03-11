@@ -5,3 +5,7 @@
 ## 2024-05-24 - Bulk DB Inserts vs Sequential execution
 **Learning:** Sequential `await tx.run()` inside a loop incurs significant database roundtrip latency, especially for trivial data such as settings updates. For a payload of 100 settings, it sequentially hit the SQLite database 100 times, taking ~32-37ms. Optimizing this to use a single bulk parameterized query (`INSERT ... VALUES (?, ?), (?, ?)`) reduced the execution time to ~5-7ms, making the DB operation ~5-7x faster.
 **Action:** Next time there is an iteration of updates or inserts, group the data into array matrices and utilize parameterized bulk queries. Ensure edge cases like empty arrays are appropriately handled to prevent SQL syntax errors.
+
+## 2024-05-25 - Bulk Inserts with Dynamic Caching
+**Learning:** In the `POST /api/shifts/week` endpoint, sequentially querying `SELECT m.id ...` and then `INSERT INTO shifts` for every new shift creates an O(N) database bottleneck, where N is the number of shifts. This is an N+1 query problem that scales poorly, especially when deploying a full week's roster.
+**Action:** By utilizing an in-memory dictionary `memberCache` keyed by `${s.name}_${s.storeId}`, we ensure each unique member is queried at most once per request. Furthermore, pushing all new shift data into a `newShiftsArgs` array and executing a single parameterized bulk `INSERT` query via `[...].flat()` drastically reduces database roundtrips.
