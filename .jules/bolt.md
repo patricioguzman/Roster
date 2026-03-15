@@ -5,3 +5,7 @@
 ## 2024-05-24 - Bulk DB Inserts vs Sequential execution
 **Learning:** Sequential `await tx.run()` inside a loop incurs significant database roundtrip latency, especially for trivial data such as settings updates. For a payload of 100 settings, it sequentially hit the SQLite database 100 times, taking ~32-37ms. Optimizing this to use a single bulk parameterized query (`INSERT ... VALUES (?, ?), (?, ?)`) reduced the execution time to ~5-7ms, making the DB operation ~5-7x faster.
 **Action:** Next time there is an iteration of updates or inserts, group the data into array matrices and utilize parameterized bulk queries. Ensure edge cases like empty arrays are appropriately handled to prevent SQL syntax errors.
+
+## 2024-05-30 - Bulk queries via specific endpoints
+**Learning:** `Promise.all` can parallelize unrelated and independent database queries, especially when fetching initial application state, to speed up initialization latency significantly by cutting down sequential overhead.
+**Action:** When fetching isolated tables (e.g. stores, shifts, members, settings), use `Promise.all` to query all of them concurrently rather than sequentially.
