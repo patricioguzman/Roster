@@ -26,6 +26,9 @@ async function fixMembers() {
 
         console.log(`Checking ${localMembers.length} local members against ${remoteMembers.length} remote members...`);
 
+        const memberStoresValues = [];
+        const memberStoresPlaceholders = [];
+
         for (const lm of localMembers) {
             let remoteMember = remoteMembers.find(rm => rm.name.toLowerCase() === lm.name.toLowerCase());
 
@@ -43,8 +46,23 @@ async function fixMembers() {
             for (const ms of localStoresForMember) {
                 const remoteStoreId = storeMapping[ms.store_id];
                 if (remoteStoreId) {
-                    await p.execute("INSERT IGNORE INTO member_stores (member_id, store_id) VALUES (?, ?)", [remoteMember.id, remoteStoreId]);
+                    memberStoresPlaceholders.push('(?, ?)');
+                    memberStoresValues.push(remoteMember.id, remoteStoreId);
                 }
+            }
+        }
+
+        if (memberStoresPlaceholders.length > 0) {
+            console.log(`Batch inserting ${memberStoresPlaceholders.length} member_stores mappings...`);
+            // Chunk if needed to avoid database parameter limits (e.g. 500 placeholders / 1000 params max)
+            const chunkSize = 1000;
+            for (let i = 0; i < memberStoresPlaceholders.length; i += chunkSize) {
+                const chunkPlaceholders = memberStoresPlaceholders.slice(i, i + chunkSize);
+                const chunkValues = memberStoresValues.slice(i * 2, (i + chunkSize) * 2);
+                await p.execute(
+                    `INSERT IGNORE INTO member_stores (member_id, store_id) VALUES ${chunkPlaceholders.join(', ')}`,
+                    chunkValues
+                );
             }
         }
 
