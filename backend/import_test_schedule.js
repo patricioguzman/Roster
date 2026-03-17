@@ -71,7 +71,7 @@ function parseTimeString(timeStr) {
     // Let's fix end time if it's less than start time in hours
     let sh = parseInt(start.split(':')[0]);
     let eh = parseInt(end.split(':')[0]);
-    if (eh <= sh && eh < 12) {
+    if (eh <= sh && eh <= 12) {
         eh += 12;
         let mm = end.split(':')[1];
         end = `${eh}:${mm}`;
