@@ -1,4 +1,4 @@
-open -u 'bypat.com.au_2pxecwmrk9o','epnH!?6K6bpoyL6v' ftp://178.32.171.58
+open -u "$FTP_USER","$FTP_PASS" "ftp://$FTP_HOST"
 set ssl:verify-certificate no
 # Sincronizar la carpeta pública (en Plesk debes apuntar el Document Root a /public)
 mirror -R public/ public/

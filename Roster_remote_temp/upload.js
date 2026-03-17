@@ -7,10 +7,15 @@ async function start() {
     client.ftp.verbose = true;
     try {
         console.log("Connecting...");
+
+        if (!process.env.FTP_PASS) {
+            throw new Error("FTP_PASS environment variable not set.");
+        }
+
         await client.access({
-            host: "178.32.171.58",
-            user: "bypat.com.au_2pxecwmrk9o",
-            password: "q4of7G6~hffFTwb!",
+            host: process.env.FTP_HOST || "178.32.171.58",
+            user: process.env.FTP_USER || "bypat.com.au_2pxecwmrk9o",
+            password: process.env.FTP_PASS,
             secure: false
         });
 
@@ -38,6 +43,7 @@ async function start() {
 
     } catch (err) {
         console.error(err);
+        process.exit(1);
     }
     client.close();
 }
