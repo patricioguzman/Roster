@@ -487,7 +487,6 @@ app.post('/api/paypal/subscription/create', authenticateToken, async (req, res) 
 // PayPal Webhook Placeholder
 app.post('/api/paypal/webhook', (req, res) => {
     // Placholder. Verify signature logic would go here if PAYPAL_WEBHOOK_ID is set
-    console.log('Received PayPal Webhook:', req.body?.event_type);
     res.status(200).send('OK');
 });
 
