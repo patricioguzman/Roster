@@ -93,29 +93,55 @@ app.get('/api/data', async (req, res) => {
 
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
+        const membersQuery = `
+            SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
+            GROUP_CONCAT(ms.store_id) as store_ids
+            FROM members m
+            LEFT JOIN member_stores ms ON m.id = ms.member_id
+            GROUP BY m.id
+        `;
+
+        // Bolt: Performance Optimization - Parallelize independent data fetches
+        // Instead of waiting for each table to return sequentially, fetch settings, stores, members, manager_stores, shifts, and specific user managed stores concurrently.
+        const promises = [
+            db.query('SELECT * FROM settings'),
+            db.query('SELECT * FROM stores'),
+            db.query(membersQuery),
+            db.query('SELECT member_id, store_id FROM manager_stores').catch(() => []), // gracefully handle if table missing
+            db.query('SELECT * FROM shifts')
+        ];
+
+        // Also fetch current user managed store ids concurrently if needed
+        let userManagedStoresPromise = null;
+        if (user && user.role === 'manager') {
+            userManagedStoresPromise = db.query('SELECT store_id FROM manager_stores WHERE member_id = ?', [user.id]);
+            promises.push(userManagedStoresPromise);
+        }
+
+        const results = await Promise.all(promises);
+
+        const settingsRows = results[0];
+        let stores = results[1];
+        const members = results[2];
+        const mgrStores = results[3];
+        let shifts = results[4];
+
+        let currentUserManagedStoreIds = [];
+        if (user && user.role === 'manager') {
+            const msRows = results[5]; // If it was pushed, it's at index 5
+            currentUserManagedStoreIds = msRows.map(r => r.store_id);
+        }
+
         settingsRows.forEach(row => {
             const k = row.key_name || row.key;
             data.settings[k] = row.value;
         });
 
-        let stores = await db.query('SELECT * FROM stores');
         if (allowedStoreIds !== null) {
             stores = stores.filter(s => allowedStoreIds.includes(s.id));
         }
         data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
         if (stores.length > 0) data.currentStoreId = stores[0].id;
-
-        const membersQuery = `
-            SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
-            GROUP_CONCAT(ms.store_id) as store_ids 
-            FROM members m
-            LEFT JOIN member_stores ms ON m.id = ms.member_id
-            GROUP BY m.id
-        `;
-        const members = await db.query(membersQuery);
-        let mgrStores = [];
-        try { mgrStores = await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { }
 
         data.members = members.map(m => {
             const memberStoreIds = m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [];
@@ -129,7 +155,6 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
         if (allowedStoreIds !== null) {
             shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
         }
@@ -142,8 +167,7 @@ app.get('/api/data', async (req, res) => {
             data.user = user;
             data.currentUserRole = user.role;
             if (user.role === 'manager') {
-                const ms = await db.query('SELECT store_id FROM manager_stores WHERE member_id = ?', [user.id]);
-                data.currentUserManagedStoreIds = ms.map(r => r.store_id);
+                data.currentUserManagedStoreIds = currentUserManagedStoreIds;
             }
         }
 
@@ -881,5 +905,8 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+module.exports = { app, authenticateToken, requireAdmin };
 
