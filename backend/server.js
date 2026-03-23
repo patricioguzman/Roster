@@ -86,38 +86,51 @@ app.get('/api/data', async (req, res) => {
             const ms = await db.query('SELECT store_id FROM member_stores WHERE member_id = ?', [user.id]);
             allowedStoreIds = ms.map(r => r.store_id);
         } else if (user && user.role === 'manager') {
-            const ms1 = await db.query('SELECT store_id FROM member_stores WHERE member_id = ?', [user.id]);
-            const ms2 = await db.query('SELECT store_id FROM manager_stores WHERE member_id = ?', [user.id]);
+            // ⚡ Bolt: Parallelize store permission checks
+            const [ms1, ms2] = await Promise.all([
+                db.query('SELECT store_id FROM member_stores WHERE member_id = ?', [user.id]),
+                db.query('SELECT store_id FROM manager_stores WHERE member_id = ?', [user.id])
+            ]);
             allowedStoreIds = [...new Set([...ms1.map(r => r.store_id), ...ms2.map(r => r.store_id)])];
         }
 
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
+        const membersQuery = `
+            SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
+            GROUP_CONCAT(ms.store_id) as store_ids
+            FROM members m
+            LEFT JOIN member_stores ms ON m.id = ms.member_id
+            GROUP BY m.id
+        `;
+
+        // ⚡ Bolt: Parallelize independent database queries to reduce cumulative latency
+        const [settingsRows, rawStores, rawMembers, shiftsRows] = await Promise.all([
+            db.query('SELECT * FROM settings'),
+            db.query('SELECT * FROM stores'),
+            db.query(membersQuery),
+            db.query('SELECT * FROM shifts')
+        ]);
+
+        // Settings mapping
         settingsRows.forEach(row => {
             const k = row.key_name || row.key;
             data.settings[k] = row.value;
         });
 
-        let stores = await db.query('SELECT * FROM stores');
+        // Stores filtering and mapping
+        let stores = rawStores;
         if (allowedStoreIds !== null) {
             stores = stores.filter(s => allowedStoreIds.includes(s.id));
         }
         data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
         if (stores.length > 0) data.currentStoreId = stores[0].id;
 
-        const membersQuery = `
-            SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
-            GROUP_CONCAT(ms.store_id) as store_ids 
-            FROM members m
-            LEFT JOIN member_stores ms ON m.id = ms.member_id
-            GROUP BY m.id
-        `;
-        const members = await db.query(membersQuery);
+        // Managers and Members mapping
         let mgrStores = [];
         try { mgrStores = await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { }
 
-        data.members = members.map(m => {
+        data.members = rawMembers.map(m => {
             const memberStoreIds = m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [];
             const managedStoreIds = mgrStores.filter(row => row.member_id === m.id).map(row => row.store_id);
             return {
@@ -129,7 +142,8 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
+        // Shifts filtering and mapping
+        let shifts = shiftsRows;
         if (allowedStoreIds !== null) {
             shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
         }
@@ -881,5 +895,9 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+
+module.exports = { app, authenticateToken, requireAdmin };
 
