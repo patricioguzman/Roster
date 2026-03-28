@@ -93,29 +93,39 @@ app.get('/api/data', async (req, res) => {
 
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
+        const membersQuery = `
+            SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
+            GROUP_CONCAT(ms.store_id) as store_ids
+            FROM members m
+            LEFT JOIN member_stores ms ON m.id = ms.member_id
+            GROUP BY m.id
+        `;
+
+        // ⚡ Bolt Performance Optimization:
+        // Fetch independent data concurrently via Promise.all instead of sequential awaits
+        // This eliminates cumulative round-trip latency when connecting to remote MySQL DBs
+        const [settingsRows, storesRows, membersRows, mgrStoresRows, shiftsRows] = await Promise.all([
+            db.query('SELECT * FROM settings'),
+            db.query('SELECT * FROM stores'),
+            db.query(membersQuery),
+            db.query('SELECT member_id, store_id FROM manager_stores').catch(() => []),
+            db.query('SELECT * FROM shifts')
+        ]);
+
         settingsRows.forEach(row => {
             const k = row.key_name || row.key;
             data.settings[k] = row.value;
         });
 
-        let stores = await db.query('SELECT * FROM stores');
+        let stores = storesRows;
         if (allowedStoreIds !== null) {
             stores = stores.filter(s => allowedStoreIds.includes(s.id));
         }
         data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
         if (stores.length > 0) data.currentStoreId = stores[0].id;
 
-        const membersQuery = `
-            SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
-            GROUP_CONCAT(ms.store_id) as store_ids 
-            FROM members m
-            LEFT JOIN member_stores ms ON m.id = ms.member_id
-            GROUP BY m.id
-        `;
-        const members = await db.query(membersQuery);
-        let mgrStores = [];
-        try { mgrStores = await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { }
+        const members = membersRows;
+        let mgrStores = mgrStoresRows;
 
         data.members = members.map(m => {
             const memberStoreIds = m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [];
@@ -129,7 +139,7 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
+        let shifts = shiftsRows;
         if (allowedStoreIds !== null) {
             shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
         }
@@ -881,5 +891,8 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+module.exports = { app, authenticateToken };
 
