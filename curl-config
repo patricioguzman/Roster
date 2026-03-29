@@ -1,1 +1,4 @@
---user "bypat.com.au_2pxecwmrk9o:XtqvVv2Xr*1pp$i1"
+# Use environment variables or pass credentials via command line
+# Example: curl -K curl-config --user "$FTP_USER:$FTP_PASS"
+# Or update this file with placeholders (NOT RECOMMENDED for sensitive data)
+# --user "USER:PASSWORD"

@@ -2,10 +2,16 @@ import ftplib
 import os
 import sys
 
-FTP_HOST = '178.32.171.58'
-FTP_USER = 'bypat.com.au_2pxecwmrk9o'
+FTP_HOST = os.getenv('FTP_HOST', '178.32.171.58')
+FTP_USER = os.getenv('FTP_USER', 'bypat.com.au_2pxecwmrk9o')
+FTP_PASS = os.getenv('FTP_PASS')
+
+if not FTP_PASS:
+    print("Error: FTP_PASS environment variable not set.")
+    sys.exit(1)
+
 # Using the correct password
-PASSWORDS = ['q4of7G6~hffFTwb!']
+PASSWORDS = [FTP_PASS]
 
 ftp = None
 for pwd in PASSWORDS:
