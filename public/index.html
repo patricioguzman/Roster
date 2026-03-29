@@ -890,12 +890,7 @@
                         dom.membersList.appendChild(li);
                     });
                     lucide.createIcons();
-                    dom.membersList.querySelectorAll('.edit-m').forEach(b => b.addEventListener('click', () => editMember(b.dataset.id)));
-                    dom.membersList.querySelectorAll('.del-m').forEach(b => b.addEventListener('click', () => {
-                        if (!confirm('Are you sure you want to delete this member?')) return;
-                        const token = localStorage.getItem('token');
-                        fetch(`/api/members/${b.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
-                    }));
+
                     // Only populate checkboxes if not in edit mode
                     if (!dom.addMemberForm.dataset.editId) {
                         dom.memberStoresCheckboxes.innerHTML = appData.stores.map(s => `<label class="flex items-center gap-2"><input type="checkbox" value="${s.id}" ${s.id === appData.currentStoreId ? 'checked' : ''}>${s.name}</label>`).join('');
@@ -931,12 +926,7 @@
                 function renderStoresList() {
                     dom.storesList.innerHTML = appData.stores.map(s => `<li class="bg-gray-800 p-2 rounded flex justify-between items-center"><span><b>${s.name}</b>: ${s.maxHours}h</span><div class="flex gap-2"><button class="edit-s text-blue-400 hover:text-blue-300" data-id="${s.id}"><i data-lucide="edit-2" class="w-4 h-4"></i></button><button class="del-s text-red-500 hover:text-red-400" data-id="${s.id}"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></li>`).join('');
                     lucide.createIcons();
-                    dom.storesList.querySelectorAll('.edit-s').forEach(b => b.addEventListener('click', () => editStore(b.dataset.id)));
-                    dom.storesList.querySelectorAll('.del-s').forEach(b => b.addEventListener('click', () => {
-                        if (!confirm('Are you sure you want to delete this store? This will also remove any assigned shifts!')) return;
-                        const token = localStorage.getItem('token');
-                        fetch(`/api/stores/${b.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
-                    }));
+
                 }
 
                 function editStore(id) {
@@ -1052,54 +1042,7 @@
 
                     dom.scheduleContainer.innerHTML = table;
                     if (!appData.currentStoreId) lucide.createIcons({ root: dom.scheduleContainer });
-                    dom.scheduleContainer.querySelectorAll('.employee-row').forEach(row => {
-                        row.addEventListener('click', (e) => {
-                            const cell = e.target.closest('.shift-cell');
-                            const dateCellClicked = cell ? cell.dataset.date : null;
 
-                            const name = row.dataset.rowName;
-                            if (dom.staffNameSelect.value !== name) {
-                                dom.staffNameSelect.value = name;
-                                renderWeeklyEditor();
-                                updateCalendarView();
-                                // Select the clicked cell
-                                setTimeout(() => {
-                                    const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
-                                    if (newCell) {
-                                        newCell.classList.add('selected-cell');
-                                        const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                                        if (correspondingRow) {
-                                            const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                            const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                            if (!cb.checked) {
-                                                cb.checked = true;
-                                                inputs.forEach(inp => inp.disabled = false);
-                                                if (!inputs[0].value) inputs[0].value = "09:00";
-                                                if (!inputs[1].value) inputs[1].value = "17:00";
-                                            }
-                                        }
-                                    }
-                                }, 50);
-                            } else if (dateCellClicked) {
-                                // If same employee, toggle selection visual and checkbox
-                                if (cell) cell.classList.toggle('selected-cell');
-
-                                const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                                if (correspondingRow) {
-                                    const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                    const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                    cb.checked = !cb.checked;
-                                    inputs.forEach(inp => inp.disabled = !cb.checked);
-                                    if (cb.checked) {
-                                        if (!inputs[0].value) inputs[0].value = "09:00";
-                                        if (!inputs[1].value) inputs[1].value = "17:00";
-                                    }
-                                }
-                            }
-
-                            dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        });
-                    });
                 }
 
                 function updateDashboard() {
@@ -1332,7 +1275,80 @@
                     doc.save('roster.pdf');
                 }
 
-                // Events
+                                // Events
+                dom.scheduleContainer.addEventListener('click', (e) => {
+                    const row = e.target.closest('.employee-row');
+                    if (!row) return;
+
+                    const cell = e.target.closest('.shift-cell');
+                    const dateCellClicked = cell ? cell.dataset.date : null;
+
+                    const name = row.dataset.rowName;
+                    if (dom.staffNameSelect.value !== name) {
+                        dom.staffNameSelect.value = name;
+                        renderWeeklyEditor();
+                        updateCalendarView();
+                        // Select the clicked cell
+                        setTimeout(() => {
+                            const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
+                            if (newCell) {
+                                newCell.classList.add('selected-cell');
+                                const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                                if (correspondingRow) {
+                                    const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                                    const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                                    if (!cb.checked) {
+                                        cb.checked = true;
+                                        inputs.forEach(inp => inp.disabled = false);
+                                        if (!inputs[0].value) inputs[0].value = "09:00";
+                                        if (!inputs[1].value) inputs[1].value = "17:00";
+                                    }
+                                }
+                            }
+                        }, 50);
+                    } else if (dateCellClicked) {
+                        // If same employee, toggle selection visual and checkbox
+                        if (cell) cell.classList.toggle('selected-cell');
+
+                        const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                        if (correspondingRow) {
+                            const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                            const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                            cb.checked = !cb.checked;
+                            inputs.forEach(inp => inp.disabled = !cb.checked);
+                            if (cb.checked) {
+                                if (!inputs[0].value) inputs[0].value = "09:00";
+                                if (!inputs[1].value) inputs[1].value = "17:00";
+                            }
+                        }
+                    }
+
+                    dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+
+                dom.membersList.addEventListener('click', (e) => {
+                    const editBtn = e.target.closest('.edit-m');
+                    if (editBtn) return editMember(editBtn.dataset.id);
+
+                    const delBtn = e.target.closest('.del-m');
+                    if (delBtn) {
+                        if (!confirm('Are you sure you want to delete this member?')) return;
+                        const token = localStorage.getItem('token');
+                        fetch(`/api/members/${delBtn.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
+                    }
+                });
+
+                dom.storesList.addEventListener('click', (e) => {
+                    const editBtn = e.target.closest('.edit-s');
+                    if (editBtn) return editStore(editBtn.dataset.id);
+
+                    const delBtn = e.target.closest('.del-s');
+                    if (delBtn) {
+                        if (!confirm('Are you sure you want to delete this store? This will also remove any assigned shifts!')) return;
+                        const token = localStorage.getItem('token');
+                        fetch(`/api/stores/${delBtn.dataset.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }).then(() => loadData());
+                    }
+                });
                 dom.loginBtn.addEventListener('click', () => toggleModal(dom.loginModal)); dom.closeLoginModalBtn.addEventListener('click', () => toggleModal(dom.loginModal));
                 dom.loginForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
