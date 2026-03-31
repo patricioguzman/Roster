@@ -39,11 +39,11 @@ function parseTimeString(timeStr) {
     // 8-2 -> 08:00-14:00
     const parts = timeStr.split('-');
 
-    function convertPart(p, isEndPart) {
+    function convertPart(p) {
         if (!p) return null;
         let [hourStr, minStr] = p.split(':');
-        let h = parseInt(hourStr);
-        let m = minStr ? parseInt(minStr) : 0;
+        let h = parseInt(hourStr, 10);
+        let m = minStr ? parseInt(minStr, 10) : 0;
 
         // Retail logic:
         // if h is 1 to 6, it's definitely PM (13 to 18) unless it is a crazy night shift, but retail usually 5 means 17:00
@@ -52,19 +52,15 @@ function parseTimeString(timeStr) {
         // Wait, "7-11" -> is it 7am or 7pm? Usually morning shift 07:00
         if (h >= 1 && h <= 6) {
             h += 12;
-        } else if (h === 7 || h === 8 || h === 9 || h === 10 || h === 11) {
-            // morning
-        } else if (h === 12) {
-            // noon
         }
 
-        let hh = h < 10 ? '0' + h : h.toString();
-        let mm = m < 10 ? '0' + m : m.toString();
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
         return `${hh}:${mm}`;
     }
 
-    let start = convertPart(parts[0], false);
-    let end = convertPart(parts[1], true);
+    let start = convertPart(parts[0]);
+    let end = convertPart(parts[1]);
 
     // Sometimes 5-9 means 17:00-21:00.
     // If start is 17:00, and end part was 9, it became 09:00, but end should be later than start.
