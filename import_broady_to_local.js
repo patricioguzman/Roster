@@ -35,7 +35,6 @@ async function importBroady() {
         WHERE ms.store_id = ?
     `, [remoteStore.id]);
 
-    const [memberStores] = await conn.query(`SELECT * FROM member_stores WHERE store_id = ?`, [remoteStore.id]);
 
     await conn.end();
     console.log(`Fetched ${shifts.length} shifts and ${members.length} members from remote.`);
