@@ -11,7 +11,11 @@ const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'roster-secret-key-123';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET environment variable is not defined.');
+    process.exit(1);
+}
 
 app.use(cors());
 app.use(express.json());
