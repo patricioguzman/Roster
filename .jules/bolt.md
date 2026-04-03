@@ -5,3 +5,7 @@
 ## 2024-05-24 - Bulk DB Inserts vs Sequential execution
 **Learning:** Sequential `await tx.run()` inside a loop incurs significant database roundtrip latency, especially for trivial data such as settings updates. For a payload of 100 settings, it sequentially hit the SQLite database 100 times, taking ~32-37ms. Optimizing this to use a single bulk parameterized query (`INSERT ... VALUES (?, ?), (?, ?)`) reduced the execution time to ~5-7ms, making the DB operation ~5-7x faster.
 **Action:** Next time there is an iteration of updates or inserts, group the data into array matrices and utilize parameterized bulk queries. Ensure edge cases like empty arrays are appropriately handled to prevent SQL syntax errors.
+
+## 2024-05-15 - Parallelize database queries to reduce network latency
+**Learning:** In the `/api/data` endpoint, fetching independent relational data sources (like settings, stores, members, shifts, and permissions) sequentially causes significant cumulative roundtrip delays, particularly when the database connection involves a remote MariaDB server.
+**Action:** Group independent `SELECT` queries into a single `Promise.all` array to execute them concurrently, optimizing total fetch latency, but ensure that any queries dependent on user authentication state (such as store filtering based on `user.id`) are resolved or evaluated after the initial role derivation.
