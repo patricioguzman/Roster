@@ -994,6 +994,9 @@
                     const members = getCurrentStoreMembers(); const shifts = getCurrentStoreShifts();
                     const membersToRender = !appData.currentStoreId ? [{ name: '' }, { name: '' }, { name: '' }, { name: '' }, { name: '' }] : members;
 
+                    // ⚡ Bolt: Use event delegation instead of attaching event listeners to each row in a loop
+                    // This prevents memory leaks and excessive browser overhead when rendering large tables
+
                     // Get today's string in Melbourne time to highlight "Today" accurately regardless of server UTC time
                     const parts = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
                     const y = parts.find(p => p.type === 'year').value;
@@ -1052,54 +1055,57 @@
 
                     dom.scheduleContainer.innerHTML = table;
                     if (!appData.currentStoreId) lucide.createIcons({ root: dom.scheduleContainer });
-                    dom.scheduleContainer.querySelectorAll('.employee-row').forEach(row => {
-                        row.addEventListener('click', (e) => {
-                            const cell = e.target.closest('.shift-cell');
-                            const dateCellClicked = cell ? cell.dataset.date : null;
 
-                            const name = row.dataset.rowName;
-                            if (dom.staffNameSelect.value !== name) {
-                                dom.staffNameSelect.value = name;
-                                renderWeeklyEditor();
-                                updateCalendarView();
-                                // Select the clicked cell
-                                setTimeout(() => {
-                                    const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
-                                    if (newCell) {
-                                        newCell.classList.add('selected-cell');
-                                        const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                                        if (correspondingRow) {
-                                            const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                            const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                            if (!cb.checked) {
-                                                cb.checked = true;
-                                                inputs.forEach(inp => inp.disabled = false);
-                                                if (!inputs[0].value) inputs[0].value = "09:00";
-                                                if (!inputs[1].value) inputs[1].value = "17:00";
-                                            }
+                    // ⚡ Bolt: Attach single delegated event listener instead of one per row
+                    dom.scheduleContainer.onclick = (e) => {
+                        const row = e.target.closest('.employee-row');
+                        if (!row) return;
+
+                        const cell = e.target.closest('.shift-cell');
+                        const dateCellClicked = cell ? cell.dataset.date : null;
+
+                        const name = row.dataset.rowName;
+                        if (dom.staffNameSelect.value !== name) {
+                            dom.staffNameSelect.value = name;
+                            renderWeeklyEditor();
+                            updateCalendarView();
+                            // Select the clicked cell
+                            setTimeout(() => {
+                                const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
+                                if (newCell) {
+                                    newCell.classList.add('selected-cell');
+                                    const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                                    if (correspondingRow) {
+                                        const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                                        const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                                        if (!cb.checked) {
+                                            cb.checked = true;
+                                            inputs.forEach(inp => inp.disabled = false);
+                                            if (!inputs[0].value) inputs[0].value = "09:00";
+                                            if (!inputs[1].value) inputs[1].value = "17:00";
                                         }
                                     }
-                                }, 50);
-                            } else if (dateCellClicked) {
-                                // If same employee, toggle selection visual and checkbox
-                                if (cell) cell.classList.toggle('selected-cell');
+                                }
+                            }, 50);
+                        } else if (dateCellClicked) {
+                            // If same employee, toggle selection visual and checkbox
+                            if (cell) cell.classList.toggle('selected-cell');
 
-                                const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                                if (correspondingRow) {
-                                    const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                    const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                    cb.checked = !cb.checked;
-                                    inputs.forEach(inp => inp.disabled = !cb.checked);
-                                    if (cb.checked) {
-                                        if (!inputs[0].value) inputs[0].value = "09:00";
-                                        if (!inputs[1].value) inputs[1].value = "17:00";
-                                    }
+                            const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                            if (correspondingRow) {
+                                const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                                const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                                cb.checked = !cb.checked;
+                                inputs.forEach(inp => inp.disabled = !cb.checked);
+                                if (cb.checked) {
+                                    if (!inputs[0].value) inputs[0].value = "09:00";
+                                    if (!inputs[1].value) inputs[1].value = "17:00";
                                 }
                             }
+                        }
 
-                            dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        });
-                    });
+                        dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    };
                 }
 
                 function updateDashboard() {
