@@ -881,5 +881,13 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+
+module.exports = {
+    app,
+    authenticateToken,
+    requireAdmin
+};
 
