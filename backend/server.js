@@ -93,19 +93,8 @@ app.get('/api/data', async (req, res) => {
 
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
-        settingsRows.forEach(row => {
-            const k = row.key_name || row.key;
-            data.settings[k] = row.value;
-        });
-
-        let stores = await db.query('SELECT * FROM stores');
-        if (allowedStoreIds !== null) {
-            stores = stores.filter(s => allowedStoreIds.includes(s.id));
-        }
-        data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
-        if (stores.length > 0) data.currentStoreId = stores[0].id;
-
+        // ⚡ Bolt: Optimize /api/data with concurrent queries and SQL-level filtering
+        // We use Promise.all to fetch independent data sources concurrently rather than sequentially.
         const membersQuery = `
             SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
             GROUP_CONCAT(ms.store_id) as store_ids 
@@ -113,9 +102,43 @@ app.get('/api/data', async (req, res) => {
             LEFT JOIN member_stores ms ON m.id = ms.member_id
             GROUP BY m.id
         `;
-        const members = await db.query(membersQuery);
-        let mgrStores = [];
-        try { mgrStores = await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { }
+
+        let storesQuery = 'SELECT * FROM stores';
+        let shiftsQuery = 'SELECT * FROM shifts';
+        let storesParams = [];
+        let shiftsParams = [];
+
+        // ⚡ Bolt: Push filter to SQL layer instead of fetching all rows and filtering in JS memory
+        if (allowedStoreIds !== null) {
+            if (allowedStoreIds.length === 0) {
+                storesQuery += ' WHERE 1=0';
+                shiftsQuery += ' WHERE 1=0';
+            } else {
+                const placeholders = allowedStoreIds.map(() => '?').join(',');
+                storesQuery += ` WHERE id IN (${placeholders})`;
+                shiftsQuery += ` WHERE store_id IN (${placeholders})`;
+                storesParams = allowedStoreIds;
+                shiftsParams = allowedStoreIds;
+            }
+        }
+
+        const [settingsRows, stores, members, mgrStoresResult, shifts] = await Promise.all([
+            db.query('SELECT * FROM settings'),
+            db.query(storesQuery, storesParams),
+            db.query(membersQuery),
+            db.query('SELECT member_id, store_id FROM manager_stores').catch(() => []),
+            db.query(shiftsQuery, shiftsParams)
+        ]);
+
+        const mgrStores = mgrStoresResult || [];
+
+        settingsRows.forEach(row => {
+            const k = row.key_name || row.key;
+            data.settings[k] = row.value;
+        });
+
+        data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
+        if (stores.length > 0) data.currentStoreId = stores[0].id;
 
         data.members = members.map(m => {
             const memberStoreIds = m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [];
@@ -129,10 +152,6 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
-        if (allowedStoreIds !== null) {
-            shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
-        }
         data.shifts = shifts.map(s => ({
             id: s.id, storeId: s.store_id, memberId: s.member_id, name: s.member_name,
             date: s.date, startTime: s.start_time, endTime: s.end_time, duration: s.duration
@@ -881,5 +900,8 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
 
+module.exports = { app, requireAdmin, authenticateToken };
