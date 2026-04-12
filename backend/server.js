@@ -363,6 +363,7 @@ app.delete('/api/members/:id', authenticateToken, async (req, res) => {
 // --- SHIFTS ---
 app.post('/api/shifts/week', authenticateToken, async (req, res) => {
     const { saveShifts, deleteShifts } = req.body;
+    console.time('POST /api/shifts/week');
     try {
         if (!req.user || req.user.role === 'employee') {
             return res.status(403).json({ error: 'Manager access required' });
@@ -385,31 +386,49 @@ app.post('/api/shifts/week', authenticateToken, async (req, res) => {
                 await tx.run(`DELETE FROM shifts WHERE id IN (${placeholders})`, deleteShifts);
             }
             if (saveShifts && saveShifts.length > 0) {
+                // Pre-fetch member IDs for all new shifts
+                const newShifts = saveShifts.filter(s => (s.id && typeof s.id === 'string' && s.id.startsWith('new_')) || (!s.id || typeof s.id !== 'number'));
+                const memberMap = new Map();
+
+                if (newShifts.length > 0) {
+                    const uniqueNames = [...new Set(newShifts.map(s => s.name))];
+                    if (uniqueNames.length > 0) {
+                        const placeholders = uniqueNames.map(() => '?').join(',');
+                        const members = await tx.query(
+                            `SELECT m.id, m.name, ms.store_id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name IN (${placeholders})`,
+                            uniqueNames
+                        );
+                        members.forEach(m => memberMap.set(`${m.name}_${m.store_id}`, m.id));
+                    }
+                }
+
                 for (let s of saveShifts) {
                     if (allowedStoreIds && !allowedStoreIds.includes(s.storeId)) {
                         throw new Error("Forbidden: Attempting to edit shifts outside managed stores");
                     }
                     if (s.id && typeof s.id === 'string' && s.id.startsWith('new_')) {
-                        const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
-                        if (row) {
+                        const memberId = memberMap.get(`${s.name}_${s.storeId}`);
+                        if (memberId) {
                             await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
+                                [s.storeId, memberId, s.name, s.date, s.startTime, s.endTime, s.duration]);
                         }
                     } else if (s.id && typeof s.id === 'number') {
                         await tx.run(`UPDATE shifts SET start_time = ?, end_time = ?, duration = ? WHERE id = ?`,
                             [s.startTime, s.endTime, s.duration, s.id]);
                     } else {
-                        const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
-                        if (row) {
+                        const memberId = memberMap.get(`${s.name}_${s.storeId}`);
+                        if (memberId) {
                             await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
+                                [s.storeId, memberId, s.name, s.date, s.startTime, s.endTime, s.duration]);
                         }
                     }
                 }
             }
         });
+        console.timeEnd('POST /api/shifts/week');
         res.json({ success: true });
     } catch (err) {
+        console.timeEnd('POST /api/shifts/week');
         res.status(500).json({ error: err.message });
     }
 });
