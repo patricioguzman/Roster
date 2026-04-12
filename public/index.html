@@ -1052,54 +1052,60 @@
 
                     dom.scheduleContainer.innerHTML = table;
                     if (!appData.currentStoreId) lucide.createIcons({ root: dom.scheduleContainer });
-                    dom.scheduleContainer.querySelectorAll('.employee-row').forEach(row => {
-                        row.addEventListener('click', (e) => {
-                            const cell = e.target.closest('.shift-cell');
-                            const dateCellClicked = cell ? cell.dataset.date : null;
 
-                            const name = row.dataset.rowName;
-                            if (dom.staffNameSelect.value !== name) {
-                                dom.staffNameSelect.value = name;
-                                renderWeeklyEditor();
-                                updateCalendarView();
-                                // Select the clicked cell
-                                setTimeout(() => {
-                                    const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
-                                    if (newCell) {
-                                        newCell.classList.add('selected-cell');
-                                        const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                                        if (correspondingRow) {
-                                            const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                            const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                            if (!cb.checked) {
-                                                cb.checked = true;
-                                                inputs.forEach(inp => inp.disabled = false);
-                                                if (!inputs[0].value) inputs[0].value = "09:00";
-                                                if (!inputs[1].value) inputs[1].value = "17:00";
-                                            }
+                    // Bolt: Replace multiple event listeners with single event delegation
+                    if (!dom.scheduleContainer.hasAttribute('data-click-bound')) {
+                        dom.scheduleContainer.setAttribute('data-click-bound', 'true');
+                        dom.scheduleContainer.addEventListener('click', (e) => {
+                        const row = e.target.closest('.employee-row');
+                        if (!row) return;
+
+                        const cell = e.target.closest('.shift-cell');
+                        const dateCellClicked = cell ? cell.dataset.date : null;
+
+                        const name = row.dataset.rowName;
+                        if (dom.staffNameSelect.value !== name) {
+                            dom.staffNameSelect.value = name;
+                            renderWeeklyEditor();
+                            updateCalendarView();
+                            // Select the clicked cell
+                            setTimeout(() => {
+                                const newCell = dom.scheduleContainer.querySelector(`.shift-cell[data-member-name="${name}"][data-date="${dateCellClicked}"]`);
+                                if (newCell) {
+                                    newCell.classList.add('selected-cell');
+                                    const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                                    if (correspondingRow) {
+                                        const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                                        const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                                        if (!cb.checked) {
+                                            cb.checked = true;
+                                            inputs.forEach(inp => inp.disabled = false);
+                                            if (!inputs[0].value) inputs[0].value = "09:00";
+                                            if (!inputs[1].value) inputs[1].value = "17:00";
                                         }
                                     }
-                                }, 50);
-                            } else if (dateCellClicked) {
-                                // If same employee, toggle selection visual and checkbox
-                                if (cell) cell.classList.toggle('selected-cell');
+                                }
+                            }, 50);
+                        } else if (dateCellClicked) {
+                            // If same employee, toggle selection visual and checkbox
+                            if (cell) cell.classList.toggle('selected-cell');
 
-                                const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
-                                if (correspondingRow) {
-                                    const cb = correspondingRow.querySelector('input[type="checkbox"]');
-                                    const inputs = correspondingRow.querySelectorAll('input[type="time"]');
-                                    cb.checked = !cb.checked;
-                                    inputs.forEach(inp => inp.disabled = !cb.checked);
-                                    if (cb.checked) {
-                                        if (!inputs[0].value) inputs[0].value = "09:00";
-                                        if (!inputs[1].value) inputs[1].value = "17:00";
-                                    }
+                            const correspondingRow = dom.weeklyEditorContainer.querySelector(`div[data-date="${dateCellClicked}"]`);
+                            if (correspondingRow) {
+                                const cb = correspondingRow.querySelector('input[type="checkbox"]');
+                                const inputs = correspondingRow.querySelectorAll('input[type="time"]');
+                                cb.checked = !cb.checked;
+                                inputs.forEach(inp => inp.disabled = !cb.checked);
+                                if (cb.checked) {
+                                    if (!inputs[0].value) inputs[0].value = "09:00";
+                                    if (!inputs[1].value) inputs[1].value = "17:00";
                                 }
                             }
+                        }
 
-                            dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        dom.shiftEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         });
-                    });
+                    }
                 }
 
                 function updateDashboard() {
