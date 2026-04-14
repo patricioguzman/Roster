@@ -93,18 +93,22 @@ app.get('/api/data', async (req, res) => {
 
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
-        settingsRows.forEach(row => {
-            const k = row.key_name || row.key;
-            data.settings[k] = row.value;
-        });
+        let storesQuery = 'SELECT * FROM stores';
+        let shiftsQuery = 'SELECT * FROM shifts';
+        let queryParams = [];
 
-        let stores = await db.query('SELECT * FROM stores');
+        // Push allowedStoreIds filtering to the database level
         if (allowedStoreIds !== null) {
-            stores = stores.filter(s => allowedStoreIds.includes(s.id));
+            if (allowedStoreIds.length === 0) {
+                storesQuery += ' WHERE 1=0';
+                shiftsQuery += ' WHERE 1=0';
+            } else {
+                const placeholders = allowedStoreIds.map(() => '?').join(',');
+                storesQuery += ` WHERE id IN (${placeholders})`;
+                shiftsQuery += ` WHERE store_id IN (${placeholders})`;
+                queryParams = allowedStoreIds;
+            }
         }
-        data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
-        if (stores.length > 0) data.currentStoreId = stores[0].id;
 
         const membersQuery = `
             SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
@@ -113,9 +117,23 @@ app.get('/api/data', async (req, res) => {
             LEFT JOIN member_stores ms ON m.id = ms.member_id
             GROUP BY m.id
         `;
-        const members = await db.query(membersQuery);
-        let mgrStores = [];
-        try { mgrStores = await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { }
+
+        // Run queries concurrently for better performance and reduced cumulative latency
+        const [settingsRows, stores, members, shifts, mgrStores] = await Promise.all([
+            db.query('SELECT * FROM settings'),
+            db.query(storesQuery, queryParams),
+            db.query(membersQuery),
+            db.query(shiftsQuery, queryParams),
+            db.query('SELECT member_id, store_id FROM manager_stores').catch(e => { console.error("Context:", e); return []; })
+        ]);
+
+        settingsRows.forEach(row => {
+            const k = row.key_name || row.key;
+            data.settings[k] = row.value;
+        });
+
+        data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
+        if (stores.length > 0) data.currentStoreId = stores[0].id;
 
         data.members = members.map(m => {
             const memberStoreIds = m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [];
@@ -129,10 +147,6 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
-        if (allowedStoreIds !== null) {
-            shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
-        }
         data.shifts = shifts.map(s => ({
             id: s.id, storeId: s.store_id, memberId: s.member_id, name: s.member_name,
             date: s.date, startTime: s.start_time, endTime: s.end_time, duration: s.duration
@@ -881,5 +895,9 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+
+module.exports = { app, authenticateToken, requireAdmin };
 
