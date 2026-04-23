@@ -93,18 +93,26 @@ app.get('/api/data', async (req, res) => {
 
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
-        settingsRows.forEach(row => {
-            const k = row.key_name || row.key;
-            data.settings[k] = row.value;
-        });
+        // ⚡ Bolt Performance Optimization: Execute database queries in parallel using Promise.all
+        // and push store filtering into the database layer to reduce memory and data transfer.
 
-        let stores = await db.query('SELECT * FROM stores');
+        let storesQuery = 'SELECT * FROM stores';
+        let storesParams = [];
+        let shiftsQuery = 'SELECT * FROM shifts';
+        let shiftsParams = [];
+
         if (allowedStoreIds !== null) {
-            stores = stores.filter(s => allowedStoreIds.includes(s.id));
+            if (allowedStoreIds.length === 0) {
+                storesQuery += ' WHERE 1=0';
+                shiftsQuery += ' WHERE 1=0';
+            } else {
+                const placeholders = allowedStoreIds.map(() => '?').join(',');
+                storesQuery += ` WHERE id IN (${placeholders})`;
+                shiftsQuery += ` WHERE store_id IN (${placeholders})`;
+                storesParams = allowedStoreIds;
+                shiftsParams = allowedStoreIds;
+            }
         }
-        data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
-        if (stores.length > 0) data.currentStoreId = stores[0].id;
 
         const membersQuery = `
             SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
@@ -113,9 +121,28 @@ app.get('/api/data', async (req, res) => {
             LEFT JOIN member_stores ms ON m.id = ms.member_id
             GROUP BY m.id
         `;
-        const members = await db.query(membersQuery);
-        let mgrStores = [];
-        try { mgrStores = await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { }
+
+        const [settingsRows, stores, members, mgrStores, shifts] = await Promise.all([
+            db.query('SELECT * FROM settings'),
+            db.query(storesQuery, storesParams),
+            db.query(membersQuery),
+            (async () => {
+                try {
+                    return await db.query('SELECT member_id, store_id FROM manager_stores');
+                } catch (e) {
+                    return [];
+                }
+            })(),
+            db.query(shiftsQuery, shiftsParams)
+        ]);
+
+        settingsRows.forEach(row => {
+            const k = row.key_name || row.key;
+            data.settings[k] = row.value;
+        });
+
+        data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
+        if (stores.length > 0) data.currentStoreId = stores[0].id;
 
         data.members = members.map(m => {
             const memberStoreIds = m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [];
@@ -129,10 +156,6 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
-        if (allowedStoreIds !== null) {
-            shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
-        }
         data.shifts = shifts.map(s => ({
             id: s.id, storeId: s.store_id, memberId: s.member_id, name: s.member_name,
             date: s.date, startTime: s.start_time, endTime: s.end_time, duration: s.duration
