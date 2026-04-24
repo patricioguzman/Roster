@@ -1,0 +1,13 @@
+💡 **What**:
+Optimized the `GET /api/data` endpoint by parallelizing independent database queries and pushing the `allowedStoreIds` filter directly into the SQL queries.
+
+🎯 **Why**:
+Previously, the endpoint awaited six database queries sequentially. Furthermore, it fetched all `stores` and `shifts` into application memory only to filter them synchronously in Node.js. This caused unnecessary memory allocation, excess data transfer across the DB connection, and inflated response latency due to the `N+1`-style waterfall of sequential awaits.
+
+📊 **Impact**:
+- Significantly reduces memory usage by offloading filtering to the SQL engine.
+- Reduces DB-to-App data transfer, specifically cutting out unauthorized store and shift data over the wire.
+- Parallelizes 6 database calls into 1 `Promise.all` block, reducing the total query time.
+
+🔬 **Measurement**:
+Verify by calling `GET /api/data` via the frontend as a non-admin user. You will notice that response latency is lower (especially in remote setups), while the returned payload correctly matches the expected filtered state (stores, shifts, and member records). The tests pass seamlessly as no API contract or external side effects were changed.
