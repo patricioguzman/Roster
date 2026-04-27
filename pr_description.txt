@@ -1,0 +1,11 @@
+💡 **What:**
+Parallelized multiple independent database read queries (`settings`, `stores`, `members`, `manager_stores`, and `shifts`) in the `/api/data` route handler using `Promise.all()`. Also wrapped `app.listen()` inside a `require.main === module` check to resolve test runner port conflicts.
+
+🎯 **Why:**
+The `/api/data` endpoint, which is the primary data loader for the frontend, fetched data sequentially. By parallelizing these queries, we eliminate cumulative network latency, reducing the total DB operation time to roughly the duration of the single slowest query, significantly optimizing the endpoint (especially for pooled connections like MySQL).
+
+📊 **Impact:**
+Reduces database fetch latency by parallelizing 5 distinct read operations into a single concurrent block.
+
+🔬 **Measurement:**
+Run `pnpm start` and monitor the load time of the initial frontend page load hitting `/api/data`. Run the test suite via `node --test backend/*.test.js` to ensure data structure stability and routing correctness.
