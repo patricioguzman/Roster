@@ -99,9 +99,17 @@ app.get('/api/data', async (req, res) => {
             data.settings[k] = row.value;
         });
 
-        let stores = await db.query('SELECT * FROM stores');
+        let stores;
         if (allowedStoreIds !== null) {
-            stores = stores.filter(s => allowedStoreIds.includes(s.id));
+            // Bolt: Optimize store retrieval by pushing filter to database layer
+            if (allowedStoreIds.length === 0) {
+                stores = [];
+            } else {
+                const placeholders = allowedStoreIds.map(() => '?').join(',');
+                stores = await db.query(`SELECT * FROM stores WHERE id IN (${placeholders})`, allowedStoreIds);
+            }
+        } else {
+            stores = await db.query('SELECT * FROM stores');
         }
         data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
         if (stores.length > 0) data.currentStoreId = stores[0].id;
@@ -129,9 +137,17 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
+        let shifts;
         if (allowedStoreIds !== null) {
-            shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
+            // Bolt: Optimize shift retrieval by pushing filter to database layer
+            if (allowedStoreIds.length === 0) {
+                shifts = [];
+            } else {
+                const placeholders = allowedStoreIds.map(() => '?').join(',');
+                shifts = await db.query(`SELECT * FROM shifts WHERE store_id IN (${placeholders})`, allowedStoreIds);
+            }
+        } else {
+            shifts = await db.query('SELECT * FROM shifts');
         }
         data.shifts = shifts.map(s => ({
             id: s.id, storeId: s.store_id, memberId: s.member_id, name: s.member_name,
