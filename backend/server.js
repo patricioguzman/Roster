@@ -562,15 +562,24 @@ app.post('/api/worked-hours', authenticateToken, async (req, res) => {
             // Delete existing hours for this store/date to replace them
             await tx.run('DELETE FROM worked_hours WHERE store_id = ? AND date = ?', [storeId, date]);
 
-            for (let h of hoursData) {
-                // Only insert if there's actual data
-                if (h.ordinary || h.sat || h.sun || h.ph || h.al || h.sl || h.notes) {
-                    await tx.run(
-                        `INSERT INTO worked_hours (store_id, member_id, date, ordinary_hours, saturday_hours, sunday_hours, ph_hours, al_hours, sl_hours, notes, uploaded_by, uploaded_at) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [storeId, h.memberId, date, h.ordinary || 0, h.sat || 0, h.sun || 0, h.ph || 0, h.al || 0, h.sl || 0, h.notes || '', req.user.id, new Date().toISOString()]
-                    );
+            // Filter for valid records
+            const validRecords = hoursData.filter(h => h.ordinary || h.sat || h.sun || h.ph || h.al || h.sl || h.notes);
+
+            if (validRecords.length > 0) {
+                const now = new Date().toISOString();
+
+                // Construct a bulk parameterized query
+                const placeholders = validRecords.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
+                const params = [];
+                for (let h of validRecords) {
+                    params.push(storeId, h.memberId, date, h.ordinary || 0, h.sat || 0, h.sun || 0, h.ph || 0, h.al || 0, h.sl || 0, h.notes || '', req.user.id, now);
                 }
+
+                await tx.run(
+                    `INSERT INTO worked_hours (store_id, member_id, date, ordinary_hours, saturday_hours, sunday_hours, ph_hours, al_hours, sl_hours, notes, uploaded_by, uploaded_at)
+                     VALUES ${placeholders}`,
+                    params
+                );
             }
         });
 
@@ -881,5 +890,9 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+
+module.exports = { app, authenticateToken, requireAdmin, checkManagerStoreAccess, getManagerStores };
 
