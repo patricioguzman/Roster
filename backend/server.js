@@ -159,8 +159,12 @@ app.put('/api/settings', authenticateToken, requireAdmin, async (req, res) => {
     const settings = req.body;
     try {
         await db.transaction(async (tx) => {
-            for (const [key, value] of Object.entries(settings)) {
-                await tx.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, value]);
+            const entries = Object.entries(settings);
+            if (entries.length > 0) {
+                // Optimize: Use bulk insert to avoid sequential DB roundtrips for settings
+                const placeholders = entries.map(() => '(?, ?)').join(', ');
+                const params = entries.flat();
+                await tx.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ${placeholders}`, params);
             }
         });
         res.json({ success: true });
@@ -881,5 +885,13 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) {
+    app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+}
+
+module.exports = {
+    app,
+    authenticateToken,
+    requireAdmin
+};
 
