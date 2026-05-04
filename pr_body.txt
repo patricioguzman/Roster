@@ -1,0 +1,7 @@
+💡 What: Replaced sequential database queries in the `/api/data` endpoint with parallel queries using `Promise.all()`. Also pushed the filtering of `stores` and `shifts` by `allowedStoreIds` into the database via dynamic SQL `IN` clauses instead of fetching all rows and filtering in Node.js.
+
+🎯 Why: The `/api/data` endpoint is the core initial load payload for the application. Awaiting 5-6 independent database queries sequentially created a significant bottleneck due to compounding network/I/O latency. Additionally, fetching all stores and shifts just to throw away unassigned ones wastes database memory and application processing time.
+
+📊 Impact: Significantly reduces database connection wait time by parallelizing I/O. Reduces Node.js memory footprint and data transfer sizes by pushing filtering to the database layer.
+
+🔬 Measurement: Verified using the test suite (`node --test`, `npx jest`) to ensure logic preservation. Expected to show a noticeable latency reduction in network tabs on initial load in production.
