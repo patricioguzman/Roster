@@ -158,11 +158,18 @@ app.get('/api/data', async (req, res) => {
 app.put('/api/settings', authenticateToken, requireAdmin, async (req, res) => {
     const settings = req.body;
     try {
-        await db.transaction(async (tx) => {
-            for (const [key, value] of Object.entries(settings)) {
-                await tx.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, value]);
-            }
-        });
+        const entries = Object.entries(settings);
+        if (entries.length > 0) {
+            await db.transaction(async (tx) => {
+                const inserts = [];
+                const params = [];
+                for (const [key, value] of entries) {
+                    inserts.push('(?, ?)');
+                    params.push(key, value);
+                }
+                await tx.run(`INSERT OR REPLACE INTO settings (key, value) VALUES ${inserts.join(',')}`, params);
+            });
+        }
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -385,26 +392,41 @@ app.post('/api/shifts/week', authenticateToken, async (req, res) => {
                 await tx.run(`DELETE FROM shifts WHERE id IN (${placeholders})`, deleteShifts);
             }
             if (saveShifts && saveShifts.length > 0) {
-                for (let s of saveShifts) {
+                const inserts = [];
+                const insertParams = [];
+                const updates = [];
+
+                // Separate new and existing shifts
+                const newShifts = saveShifts.filter(s => !s.id || (typeof s.id === 'string' && s.id.startsWith('new_')));
+                const existingShifts = saveShifts.filter(s => s.id && typeof s.id === 'number');
+
+                for (let s of existingShifts) {
                     if (allowedStoreIds && !allowedStoreIds.includes(s.storeId)) {
                         throw new Error("Forbidden: Attempting to edit shifts outside managed stores");
                     }
-                    if (s.id && typeof s.id === 'string' && s.id.startsWith('new_')) {
-                        const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
-                        if (row) {
-                            await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
+                    updates.push([s.startTime, s.endTime, s.duration, s.id]);
+                }
+
+                if (newShifts.length > 0) {
+                    for (let s of newShifts) {
+                        if (allowedStoreIds && !allowedStoreIds.includes(s.storeId)) {
+                            throw new Error("Forbidden: Attempting to edit shifts outside managed stores");
                         }
-                    } else if (s.id && typeof s.id === 'number') {
-                        await tx.run(`UPDATE shifts SET start_time = ?, end_time = ?, duration = ? WHERE id = ?`,
-                            [s.startTime, s.endTime, s.duration, s.id]);
-                    } else {
                         const row = await tx.get('SELECT m.id FROM members m JOIN member_stores ms ON m.id = ms.member_id WHERE m.name = ? AND ms.store_id = ?', [s.name, s.storeId]);
                         if (row) {
-                            await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                                [s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration]);
+                            inserts.push('(?, ?, ?, ?, ?, ?, ?)');
+                            insertParams.push(s.storeId, row.id, s.name, s.date, s.startTime, s.endTime, s.duration);
                         }
                     }
+                }
+
+                if (updates.length > 0) {
+                    for (let u of updates) {
+                        await tx.run(`UPDATE shifts SET start_time = ?, end_time = ?, duration = ? WHERE id = ?`, u);
+                    }
+                }
+                if (inserts.length > 0) {
+                    await tx.run(`INSERT INTO shifts (store_id, member_id, member_name, date, start_time, end_time, duration) VALUES ${inserts.join(',')}`, insertParams);
                 }
             }
         });
@@ -562,15 +584,27 @@ app.post('/api/worked-hours', authenticateToken, async (req, res) => {
             // Delete existing hours for this store/date to replace them
             await tx.run('DELETE FROM worked_hours WHERE store_id = ? AND date = ?', [storeId, date]);
 
-            for (let h of hoursData) {
-                // Only insert if there's actual data
-                if (h.ordinary || h.sat || h.sun || h.ph || h.al || h.sl || h.notes) {
-                    await tx.run(
-                        `INSERT INTO worked_hours (store_id, member_id, date, ordinary_hours, saturday_hours, sunday_hours, ph_hours, al_hours, sl_hours, notes, uploaded_by, uploaded_at) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                        [storeId, h.memberId, date, h.ordinary || 0, h.sat || 0, h.sun || 0, h.ph || 0, h.al || 0, h.sl || 0, h.notes || '', req.user.id, new Date().toISOString()]
+            const validHours = hoursData.filter(h => h.ordinary || h.sat || h.sun || h.ph || h.al || h.sl || h.notes);
+
+            if (validHours.length > 0) {
+                const inserts = [];
+                const params = [];
+                const now = new Date().toISOString();
+
+                for (let h of validHours) {
+                    inserts.push('(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                    params.push(
+                        storeId, h.memberId, date,
+                        h.ordinary || 0, h.sat || 0, h.sun || 0,
+                        h.ph || 0, h.al || 0, h.sl || 0,
+                        h.notes || '', req.user.id, now
                     );
                 }
+
+                await tx.run(
+                    `INSERT INTO worked_hours (store_id, member_id, date, ordinary_hours, saturday_hours, sunday_hours, ph_hours, al_hours, sl_hours, notes, uploaded_by, uploaded_at) VALUES ${inserts.join(',')}`,
+                    params
+                );
             }
         });
 
