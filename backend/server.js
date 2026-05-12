@@ -93,29 +93,61 @@ app.get('/api/data', async (req, res) => {
 
         const data = { stores: [], members: [], shifts: [], settings: {}, currentStoreId: null };
 
-        const settingsRows = await db.query('SELECT * FROM settings');
+        // ⚡ Bolt: Parallelize DB reads and push filtering to SQL for performance
+        // This avoids fetching the entire shifts/stores table into memory and prevents N+1 queries.
+        let settingsRows, stores, members, mgrStores, shifts;
+
+        if (allowedStoreIds !== null && allowedStoreIds.length === 0) {
+            // Early return if user has no allowed stores, just fetch settings and members
+            [settingsRows, members, mgrStores] = await Promise.all([
+                db.query('SELECT * FROM settings'),
+                db.query(`
+                    SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
+                    GROUP_CONCAT(ms.store_id) as store_ids
+                    FROM members m
+                    LEFT JOIN member_stores ms ON m.id = ms.member_id
+                    GROUP BY m.id
+                `),
+                (async () => { try { return await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { return []; } })()
+            ]);
+            stores = [];
+            shifts = [];
+        } else {
+            let storesQuery = 'SELECT * FROM stores';
+            let storesParams = [];
+            let shiftsQuery = 'SELECT * FROM shifts';
+            let shiftsParams = [];
+
+            if (allowedStoreIds !== null) {
+                const placeholders = allowedStoreIds.map(() => '?').join(',');
+                storesQuery = `SELECT * FROM stores WHERE id IN (${placeholders})`;
+                storesParams = allowedStoreIds;
+                shiftsQuery = `SELECT * FROM shifts WHERE store_id IN (${placeholders})`;
+                shiftsParams = allowedStoreIds;
+            }
+
+            [settingsRows, stores, members, mgrStores, shifts] = await Promise.all([
+                db.query('SELECT * FROM settings'),
+                db.query(storesQuery, storesParams),
+                db.query(`
+                    SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
+                    GROUP_CONCAT(ms.store_id) as store_ids
+                    FROM members m
+                    LEFT JOIN member_stores ms ON m.id = ms.member_id
+                    GROUP BY m.id
+                `),
+                (async () => { try { return await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { return []; } })(),
+                db.query(shiftsQuery, shiftsParams)
+            ]);
+        }
+
         settingsRows.forEach(row => {
             const k = row.key_name || row.key;
             data.settings[k] = row.value;
         });
 
-        let stores = await db.query('SELECT * FROM stores');
-        if (allowedStoreIds !== null) {
-            stores = stores.filter(s => allowedStoreIds.includes(s.id));
-        }
         data.stores = stores.map(s => ({ id: s.id, name: s.name, maxHours: s.max_hours || 0 }));
         if (stores.length > 0) data.currentStoreId = stores[0].id;
-
-        const membersQuery = `
-            SELECT m.id, m.name, m.phone, m.email, m.base_rate, m.employment_type, m.role,
-            GROUP_CONCAT(ms.store_id) as store_ids 
-            FROM members m
-            LEFT JOIN member_stores ms ON m.id = ms.member_id
-            GROUP BY m.id
-        `;
-        const members = await db.query(membersQuery);
-        let mgrStores = [];
-        try { mgrStores = await db.query('SELECT member_id, store_id FROM manager_stores'); } catch (e) { }
 
         data.members = members.map(m => {
             const memberStoreIds = m.store_ids ? String(m.store_ids).split(',').map(id => parseInt(id)) : [];
@@ -129,10 +161,6 @@ app.get('/api/data', async (req, res) => {
             };
         });
 
-        let shifts = await db.query('SELECT * FROM shifts');
-        if (allowedStoreIds !== null) {
-            shifts = shifts.filter(s => allowedStoreIds.includes(s.store_id));
-        }
         data.shifts = shifts.map(s => ({
             id: s.id, storeId: s.store_id, memberId: s.member_id, name: s.member_name,
             date: s.date, startTime: s.start_time, endTime: s.end_time, duration: s.duration
@@ -881,5 +909,7 @@ app.get('/api/exports/roster', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); });
+if (require.main === module) { app.listen(PORT, () => { console.log(`Roster Server running on http://localhost:${PORT}`); }); }
 
+
+module.exports = { app, authenticateToken, requireAdmin };
