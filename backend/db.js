@@ -25,7 +25,7 @@ if (isMysql) {
     sqliteDb = new sqlite3.Database(dbPath, (err) => {
         if (err) console.error('Error opening local SQLite database', err.message);
         else {
-            console.log('Connected to the local SQLite database.');
+            if (process.env.NODE_ENV !== 'test') console.log('Connected to the local SQLite database.');
             initSqlite();
         }
     });
